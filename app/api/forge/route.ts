@@ -40,19 +40,27 @@ function buildCoverSongPrompt(
   return `You are building a Helix preset for a guitarist performing "${songTitle}" by ${artist} as a live cover.
 ${notes ? `\nGuitarist notes: "${notes}"` : ""}
 ${audioBlock}
+SNAPSHOT CONSOLIDATION RULES — follow these strictly:
+- A Helix preset has 8 snapshot slots. Use NO MORE THAN 6. Leave at least 2 empty (null) for the guitarist to assign manually later.
+- Only create a new snapshot when the guitar TONE actually changes — not just because a new section starts.
+- If Verse 1, Verse 2, and Verse 3 all use the same clean tone, they share ONE snapshot called VERSE. The MIDI map will point all three timestamps at the same CC69 value.
+- Typical well-consolidated layout: INTRO · VERSE · CHORUS · SOLO · BRIDGE (if tonally different) · OUTRO (if tonally different). That's 4–6 snapshots max for most songs.
+- Do NOT create VERSE 1, VERSE 2, VERSE 3 etc. unless those verses are genuinely different tones.
+- The "sections" array in meta lists every song section with its timestamp and which snapshot it maps to — multiple sections can share the same snapshotIndex and midiCCValue.
+
 Your task:
-1. Map the song's structural sections (Intro, Verse, Pre-Chorus, Chorus, Bridge, Solo, Breakdown, Outro — whatever applies, max 8) to Helix snapshots.
-2. ${audioAnalysis ? "Use the measured audio data above to set each snapshot's tone accurately." : "Use your knowledge of the original recording's tones for each section."}
-3. Build ONE Helix preset where each SNAPSHOT = one song section.
-4. Provide timestamps for MIDI automation: CC69 values 0–7 trigger snapshots 1–8 in real time from a DAW.
+1. Identify all structural sections of the song. Group sections that share the same tone into one snapshot.
+2. ${audioAnalysis ? "Use the measured audio data above to determine when tones actually differ between sections." : "Use your knowledge of the original recording to determine which sections share a tone."}
+3. Build ONE Helix preset with consolidated snapshots. Empty snapshot slots (beyond what you use) should be omitted from the hsp.
+4. Provide MIDI timestamps for every section occurrence — multiple sections can trigger the same CC69 value.
 
 Return a single JSON object:
 {
   "meta": {
     "name": "${songTitle} — ${artist}",
-    "description": "2-3 sentences on the tone approach and snapshot mapping",
+    "description": "2-3 sentences on the tone approach and how snapshots are consolidated",
     "chain": ["Block 1", "Block 2", "..."],
-    "snapshots": ["INTRO", "VERSE", "CHORUS", ...],
+    "snapshots": ["INTRO", "VERSE", "CHORUS", "SOLO", null, null, null, null],
     "sections": [
       {
         "name": "INTRO",
@@ -60,18 +68,39 @@ Return a single JSON object:
         "approxTimestamp": "0:00",
         "toneDescription": "Clean arpeggios, light spring reverb",
         "midiCCValue": 0
+      },
+      {
+        "name": "VERSE 1",
+        "snapshotIndex": 1,
+        "approxTimestamp": "0:22",
+        "toneDescription": "Edge of breakup, Telecaster snap",
+        "midiCCValue": 1
+      },
+      {
+        "name": "CHORUS 1",
+        "snapshotIndex": 2,
+        "approxTimestamp": "1:05",
+        "toneDescription": "Full crunch, Screamer pushed",
+        "midiCCValue": 2
+      },
+      {
+        "name": "VERSE 2",
+        "snapshotIndex": 1,
+        "approxTimestamp": "1:45",
+        "toneDescription": "Same as Verse 1 — same snapshot",
+        "midiCCValue": 1
       }
     ],
     "midiInfo": {
       "cc": 69,
       "channel": 1,
-      "note": "Program CC69 at each timestamp in your DAW. Set Helix to the same MIDI channel."
+      "note": "Program CC69 at each timestamp in your DAW. Repeated sections reuse the same CC value. Set Helix to the same MIDI channel."
     }
   },
-  "hsp": { ...complete Helix preset JSON... }
+  "hsp": { ...complete Helix preset JSON with only the used snapshots populated... }
 }
 
-Snapshot names in "hsp" must match the section names exactly.
+Snapshot names in "hsp" must match the unique snapshot names exactly. Null slots are left empty.
 Return ONLY the JSON — no markdown, no explanation.`;
 }
 
