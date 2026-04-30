@@ -1,26 +1,152 @@
 @import "tailwindcss";
 
+/* ============================================================
+   HELIXFORGE — FORGE / INDUSTRIAL DESIGN SYSTEM
+   Dark steel, molten orange, ember glow
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core palette */
+  --forge-black:    #080608;
+  --forge-dark:     #0f0d10;
+  --forge-steel:    #1a1720;
+  --forge-iron:     #252230;
+  --forge-metal:    #312e3f;
+
+  /* Text */
+  --forge-text:     #e8e4f0;
+  --forge-muted:    #7a7490;
+  --forge-faint:    #3d3a4a;
+
+  /* Ember / molten accent */
+  --forge-ember:    #ff6b1a;
+  --forge-glow:     #ff9240;
+  --forge-hot:      #ffb347;
+  --forge-dim:      #c04a0a;
+
+  /* Secondary accent — electric blue (arc weld) */
+  --forge-arc:      #4af0ff;
+  --forge-arc-dim:  #1a8090;
+
+  /* Borders */
+  --forge-border:   #2a2635;
+  --forge-border-hot: #ff6b1a44;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--forge-black);
+    color: var(--forge-text);
+    font-family: "Geist", system-ui, sans-serif;
+    min-height: 100vh;
+    /* Subtle noise texture */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+    background-blend-mode: overlay;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Geist Mono", monospace;
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background-color: var(--forge-ember);
+    color: var(--forge-black);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--forge-dark);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--forge-metal);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--forge-ember);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ============================================================
+   GLOW UTILITIES
+   ============================================================ */
+
+.ember-glow {
+  box-shadow: 0 0 20px rgba(255, 107, 26, 0.3), 0 0 60px rgba(255, 107, 26, 0.1);
 }
+
+.ember-glow-text {
+  text-shadow: 0 0 20px rgba(255, 107, 26, 0.6);
+}
+
+.arc-glow {
+  box-shadow: 0 0 20px rgba(74, 240, 255, 0.3), 0 0 60px rgba(74, 240, 255, 0.1);
+}
+
+.steel-border {
+  border: 1px solid var(--forge-border);
+  background: linear-gradient(135deg, var(--forge-steel), var(--forge-dark));
+}
+
+.hot-border {
+  border: 1px solid var(--forge-border-hot);
+  box-shadow: inset 0 0 30px rgba(255, 107, 26, 0.05);
+}
+
+/* Scan line effect */
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Animated ember pulse */
+@keyframes ember-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 20px rgba(255, 107, 26, 0.4); }
+  50%       { opacity: 0.85; box-shadow: 0 0 40px rgba(255, 107, 26, 0.7); }
+}
+
+@keyframes forge-flicker {
+  0%, 100% { opacity: 1; }
+  92%       { opacity: 1; }
+  93%       { opacity: 0.8; }
+  94%       { opacity: 1; }
+  96%       { opacity: 0.9; }
+  97%       { opacity: 1; }
+}
+
+@keyframes heat-rise {
+  from { transform: translateY(0px); opacity: 0.7; }
+  to   { transform: translateY(-8px); opacity: 0; }
+}
+
+@keyframes arc-flicker {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+  75%       { opacity: 0.9; }
+}
+
+.animate-ember    { animation: ember-pulse 3s ease-in-out infinite; }
+.animate-flicker  { animation: forge-flicker 8s ease-in-out infinite; }
+.animate-arc      { animation: arc-flicker 0.15s ease-in-out infinite; }
