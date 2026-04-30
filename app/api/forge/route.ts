@@ -44,9 +44,15 @@ SNAPSHOT CONSOLIDATION RULES — follow these strictly:
 - A Helix preset has 8 snapshot slots. Use NO MORE THAN 6. Leave at least 2 empty (null) for the guitarist to assign manually later.
 - Only create a new snapshot when the guitar TONE actually changes — not just because a new section starts.
 - If Verse 1, Verse 2, and Verse 3 all use the same clean tone, they share ONE snapshot called VERSE. The MIDI map will point all three timestamps at the same CC69 value.
-- Typical well-consolidated layout: INTRO · VERSE · CHORUS · SOLO · BRIDGE (if tonally different) · OUTRO (if tonally different). That's 4–6 snapshots max for most songs.
 - Do NOT create VERSE 1, VERSE 2, VERSE 3 etc. unless those verses are genuinely different tones.
 - The "sections" array in meta lists every song section with its timestamp and which snapshot it maps to — multiple sections can share the same snapshotIndex and midiCCValue.
+
+REQUIRED SEPARATE SNAPSHOTS — these must ALWAYS be their own snapshot, never collapsed:
+- CHORUS must always be separate from VERSE. Even if energy is similar, the chorus in country/rock/pop always has more presence, drive, or a brighter EQ than the verse. Create a CHORUS snapshot.
+- SOLO must always be its own snapshot — more drive, lead boost, different delay/reverb.
+- INTRO may share with VERSE only if the intro is the same riff played the same way with identical tone.
+- BRIDGE must be separate if it exists and differs tonally from verse/chorus.
+- Typical minimum layout: VERSE · CHORUS · SOLO (3 snapshots). Add INTRO and OUTRO only if tonally distinct.
 
 Your task:
 1. Identify all structural sections of the song. Group sections that share the same tone into one snapshot.
