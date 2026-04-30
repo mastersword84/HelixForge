@@ -450,8 +450,37 @@ function MidiMap({ sections, midiInfo }: { sections: Section[]; midiInfo: MidiIn
 /* ── Result ── */
 function ResultState({ result, onReset }: { result: ForgeResult; onReset: () => void }) {
   const [showJson, setShowJson] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const { meta, hsp } = result;
   const isCover = !!meta.sections;
+
+  async function saveTocatalog() {
+    if (saving || saved) return;
+    setSaving(true);
+    try {
+      const [songTitle, artist] = isCover ? meta.name.split(" — ") : [null, null];
+      await fetch("/api/presets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: isCover ? "cover" : "describe",
+          preset_name: meta.name,
+          song_title: songTitle?.trim() || null,
+          artist: artist?.trim() || null,
+          description: meta.description,
+          chain: meta.chain,
+          snapshots: meta.snapshots,
+          sections: meta.sections,
+          midi_info: meta.midiInfo,
+          hsp,
+        }),
+      });
+      setSaved(true);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -577,6 +606,41 @@ function ResultState({ result, onReset }: { result: ForgeResult; onReset: () => 
           ? "Drag .hsp into HX Edit · Drag .mid onto a MIDI track → route to Helix"
           : "Import via HX Edit or copy to Helix preset folder"}
       </p>
+
+      {/* Save to catalog */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={saveTocatalog}
+          disabled={saving || saved}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded text-xs font-mono font-bold transition-all"
+          style={{
+            background: saved ? "rgba(52,211,153,0.1)" : "transparent",
+            border: `1px solid ${saved ? "rgba(52,211,153,0.4)" : "var(--forge-border)"}`,
+            color: saved ? "#34d399" : "var(--forge-muted)",
+          }}
+          onMouseEnter={(e) => { if (!saved) (e.currentTarget as HTMLElement).style.borderColor = "var(--forge-ember)"; }}
+          onMouseLeave={(e) => { if (!saved) (e.currentTarget as HTMLElement).style.borderColor = "var(--forge-border)"; }}
+        >
+          {saved ? (
+            <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>Saved to Catalog</>
+          ) : saving ? (
+            <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>Saving...</>
+          ) : (
+            <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>Save to Catalog</>
+          )}
+        </button>
+
+        {saved && (
+          <Link href="/catalog"
+            className="px-4 py-3 rounded text-xs font-mono font-bold transition-all"
+            style={{ border: "1px solid var(--forge-border)", color: "var(--forge-muted)" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--forge-text)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--forge-muted)")}
+          >
+            View Catalog →
+          </Link>
+        )}
+      </div>
 
       {/* JSON viewer */}
       <div>
