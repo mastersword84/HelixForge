@@ -19,6 +19,8 @@ interface MidiInfo {
   cc: number;
   channel: number;
   note: string;
+  presetSlot?: string;     // e.g. "1A", "12C"; if set, MIDI starts with PC + CC32
+  setlistBank?: string;    // CC32 value as string (1-127)
 }
 
 interface ForgeMeta {
@@ -49,7 +51,27 @@ function downloadHsp(hsp: object, name: string) {
 }
 
 /* ── MIDI file generator ── */
-function generateMidiFile(sections: Section[], midiInfo: MidiInfo): Uint8Array {
+/**
+ * Parse a Helix preset slot like "1A", "12C", "32D" into a Program Change
+ * value (0-127). Helix banks have 4 slots each (A/B/C/D), so:
+ *   1A → PC 0, 1B → 1, 1C → 2, 1D → 3, 2A → 4, ..., 32D → 127
+ */
+function parsePresetSlot(slot: string): number | null {
+  const m = slot.trim().toUpperCase().match(/^(\d{1,2})([ABCD])$/);
+  if (!m) return null;
+  const bank = parseInt(m[1], 10);
+  const letterIdx = "ABCD".indexOf(m[2]);
+  if (bank < 1 || bank > 32) return null;
+  const pc = (bank - 1) * 4 + letterIdx;
+  if (pc < 0 || pc > 127) return null;
+  return pc;
+}
+
+function generateMidiFile(
+  sections: Section[],
+  midiInfo: MidiInfo,
+  presetAddress?: { presetSlot: string; setlistBank: string }
+): Uint8Array {
   const PPQ = 480;   // ticks per quarter note
   const BPM = 120;   // standard tempo; DAW will stretch to project tempo
   const TICKS_PER_SEC = (BPM / 60) * PPQ; // 960
@@ -76,6 +98,7 @@ function generateMidiFile(sections: Section[], midiInfo: MidiInfo): Uint8Array {
   }
 
   const events: number[] = [];
+  const ch = Math.max(0, Math.min(15, (midiInfo.channel ?? 1) - 1));
 
   // Tempo meta event (120 BPM = 500 000 µs/beat)
   const tempoUs = Math.round(60_000_000 / BPM);
@@ -86,8 +109,22 @@ function generateMidiFile(sections: Section[], midiInfo: MidiInfo): Uint8Array {
   const trackName = Array.from(new TextEncoder().encode("HelixForge MIDI Map"));
   events.push(...vlq(0), 0xFF, 0x03, ...vlq(trackName.length), ...trackName);
 
+  // ── PRESET RECALL (Option B) ──
+  // If the user provided a preset slot address, emit CC32 (bank select) +
+  // Program Change at tick 0 so Helix loads the right preset before the
+  // song starts.
+  if (presetAddress?.presetSlot) {
+    const pc = parsePresetSlot(presetAddress.presetSlot);
+    const bank = parseInt(presetAddress.setlistBank, 10);
+    if (pc !== null && !Number.isNaN(bank) && bank >= 0 && bank <= 127) {
+      // CC32 (Bank Select LSB) — selects setlist/group
+      events.push(...vlq(0), 0xB0 | ch, 32, bank & 0x7F);
+      // Program Change — selects preset within bank
+      events.push(...vlq(0), 0xC0 | ch, pc & 0x7F);
+    }
+  }
+
   // CC69 events at each section timestamp
-  const ch = Math.max(0, Math.min(15, (midiInfo.channel ?? 1) - 1));
   let prevTick = 0;
   for (const s of sections) {
     const tick = Math.round(tsToSeconds(s.approxTimestamp) * TICKS_PER_SEC);
@@ -124,8 +161,13 @@ function generateMidiFile(sections: Section[], midiInfo: MidiInfo): Uint8Array {
   return new Uint8Array([...header, ...track]);
 }
 
-function downloadMidi(sections: Section[], midiInfo: MidiInfo, name: string) {
-  const bytes = generateMidiFile(sections, midiInfo);
+function downloadMidi(
+  sections: Section[],
+  midiInfo: MidiInfo,
+  name: string,
+  presetAddress?: { presetSlot: string; setlistBank: string }
+) {
+  const bytes = generateMidiFile(sections, midiInfo, presetAddress);
   const blob = new Blob([bytes], { type: "audio/midi" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -592,7 +634,14 @@ function ResultState({ result, onReset }: { result: ForgeResult; onReset: () => 
 
         {isCover && meta.sections && meta.midiInfo && (
           <button
-            onClick={() => downloadMidi(meta.sections!, meta.midiInfo!, meta.name)}
+            onClick={() => downloadMidi(
+              meta.sections!,
+              meta.midiInfo!,
+              meta.name,
+              meta.midiInfo?.presetSlot
+                ? { presetSlot: meta.midiInfo.presetSlot, setlistBank: meta.midiInfo.setlistBank ?? "1" }
+                : undefined
+            )}
             className="flex items-center justify-center gap-3 w-full py-3.5 rounded text-sm font-bold font-mono transition-all duration-200"
             style={{
               background: "transparent",
@@ -735,6 +784,62 @@ function Field({
   );
 }
 
+function Select({
+  label, value, onChange, options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: Array<{ value: string; label: string }>;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-mono mb-2 tracking-widest" style={{ color: "var(--forge-faint)" }}>
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-4 py-3 rounded text-sm font-mono outline-none transition-all cursor-pointer"
+        style={{ background: "var(--forge-iron)", border: "1px solid var(--forge-border)", color: "var(--forge-text)" }}
+        onFocus={(e) => (e.currentTarget.style.borderColor = "var(--forge-ember)")}
+        onBlur={(e) => (e.currentTarget.style.borderColor = "var(--forge-border)")}
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+// All 128 preset slots (1A through 32D) + an explicit "manual" empty option
+const PRESET_SLOT_OPTIONS: Array<{ value: string; label: string }> = (() => {
+  const opts: Array<{ value: string; label: string }> = [
+    { value: "", label: "— manual (no preset switch) —" },
+  ];
+  for (let bank = 1; bank <= 32; bank++) {
+    for (const letter of ["A", "B", "C", "D"]) {
+      opts.push({ value: `${bank}${letter}`, label: `${bank}${letter}` });
+    }
+  }
+  return opts;
+})();
+
+const SETLIST_BANK_OPTIONS: Array<{ value: string; label: string }> = (() => {
+  const opts: Array<{ value: string; label: string }> = [
+    { value: "0", label: "Factory Presets (0)" },
+    { value: "1", label: "User Group 1 (1)" },
+    { value: "2", label: "User Group 2 (2)" },
+    { value: "3", label: "User Group 3 (3)" },
+    { value: "4", label: "User Group 4 (4)" },
+  ];
+  for (let i = 5; i <= 16; i++) {
+    opts.push({ value: String(i), label: `Custom Setlist ${i}` });
+  }
+  return opts;
+})();
+
 /* ── Main ── */
 export default function ForgePage() {
   const [mode, setMode] = useState<ForgeMode>("describe");
@@ -745,6 +850,9 @@ export default function ForgePage() {
   const [coverNotes, setCoverNotes] = useState("");
   const [coverAudioFile, setCoverAudioFile] = useState<File | null>(null);
   const [coverAudioDragging, setCoverAudioDragging] = useState(false);
+  // Preset address for the song's MIDI Program Change event (Option B)
+  const [presetSlot, setPresetSlot] = useState("");      // e.g. "1A", "12C", "32D"
+  const [setlistBank, setSetlistBank] = useState("1");   // CC32 value (1-4 = User Groups, 5+ = custom setlists)
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [status, setStatus] = useState<ForgeStatus>("idle");
@@ -786,7 +894,7 @@ export default function ForgePage() {
     try {
       const body =
         mode === "cover"
-          ? { mode: "cover", songTitle, artist, notes: coverNotes, audioAnalysis, midiOnly }
+          ? { mode: "cover", songTitle, artist, notes: coverNotes, audioAnalysis, midiOnly, presetSlot, setlistBank }
           : { mode: "describe", description: description || `Tone from audio: ${audioFile?.name}`, presetName };
 
       const res = await fetch("/api/forge", {
@@ -803,7 +911,7 @@ export default function ForgePage() {
       setError(e instanceof Error ? e.message : "Something went wrong");
       setStatus("error");
     }
-  }, [canForge, isActive, mode, description, presetName, songTitle, artist, coverNotes, coverAudioFile, audioFile]);
+  }, [canForge, isActive, mode, description, presetName, songTitle, artist, coverNotes, coverAudioFile, audioFile, presetSlot, setlistBank]);
 
   const reset = () => {
     setStatus("idle");
@@ -905,6 +1013,25 @@ export default function ForgePage() {
             <>
               <Field label="SONG TITLE" value={songTitle} onChange={setSongTitle} placeholder="Comfortably Numb" />
               <Field label="ARTIST" value={artist} onChange={setArtist} placeholder="Pink Floyd" />
+
+              {/* Preset address for full MIDI automation */}
+              <div className="grid grid-cols-2 gap-3">
+                <Select
+                  label="PRESET SLOT"
+                  value={presetSlot}
+                  onChange={setPresetSlot}
+                  options={PRESET_SLOT_OPTIONS}
+                />
+                <Select
+                  label="SETLIST / BANK"
+                  value={setlistBank}
+                  onChange={setSetlistBank}
+                  options={SETLIST_BANK_OPTIONS}
+                />
+              </div>
+              <p className="text-xs font-mono -mt-1" style={{ color: "var(--forge-faint)" }}>
+                Pick the slot where this song&apos;s preset lives on Stadium → MIDI auto-loads it before the song. Leave as &quot;manual&quot; if you switch presets yourself.
+              </p>
 
               {/* Audio upload — the real thing */}
               <div>

@@ -152,6 +152,8 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { mode, description, presetName, songTitle, artist, notes, audioAnalysis } = body;
+    const presetSlot = (body.presetSlot as string | undefined)?.trim() || "";
+    const setlistBank = (body.setlistBank as string | undefined)?.trim() || "1";
 
     // ── SAFE MIDI-ONLY MODE ──
     // For when the user wants only MIDI automation for their show and will
@@ -197,6 +199,8 @@ export async function POST(req: NextRequest) {
             cc: 69,
             channel: 1,
             note: "Program CC69 at each timestamp in your DAW. Set Helix to MIDI channel 1. Snapshot index = CC value.",
+            presetSlot: presetSlot || undefined,
+            setlistBank: presetSlot ? setlistBank : undefined,
           },
           midiOnly: true,
           duration: lookup.spotify?.durationSec,
@@ -305,7 +309,13 @@ export async function POST(req: NextRequest) {
       chain: parsed.uiMeta.chain,
       snapshots: parsed.decisions.snapshots.map((s) => s?.name ?? null),
       sections: parsed.uiMeta.sections ?? null,
-      midiInfo: parsed.uiMeta.midiInfo ?? null,
+      midiInfo: parsed.uiMeta.midiInfo
+        ? {
+            ...parsed.uiMeta.midiInfo,
+            presetSlot: presetSlot || undefined,
+            setlistBank: presetSlot ? setlistBank : undefined,
+          }
+        : null,
       basePreset: { filename: basePreset.filename, name: basePreset.name },
     };
 
