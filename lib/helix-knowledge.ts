@@ -444,57 +444,84 @@ RECOMMENDED 8-SNAPSHOT LAYOUT:
   7: CUSTOM       → User-defined variation
 
 ================================================================
-HSP FILE FORMAT TEMPLATE
+OUTPUT FORMAT — DECISIONS ONLY (server applies to template)
 ================================================================
 
-File header: always starts with "rpshnosj" then the JSON object.
+You DO NOT output a full .hsp file. The server has a validated factory
+preset template and only needs your high-level decisions to patch into it.
+This makes the file format unbreakable.
 
-Block @enabled with controller:
-{
-  "@enabled": {
-    "value": true,
-    "snapshots": [false, true, true, true, true, true, true, true],
-    "controller": {
-      "type": "targetbypass",
-      "source": 16843008,
-      "behavior": "latching",
-      "min": false,
-      "max": true,
-      "curve": "linear",
-      "delay": 0,
-      "threshold": 0,
-      "bypassed": false,
-      "midisource": 0,
-      "goid": 0
-    }
-  }
-}
+Output a single JSON object matching this schema EXACTLY:
 
-Harness (footswitch display config):
 {
-  "harness": {
-    "@enabled": { "value": true },
+  "name": "Preset name (max 16 chars works best on Stadium display)",
+  "info": "1-3 sentence description of the tone and how it was built",
+  "amp": {
+    "model": "Agoura_AmpUSDoubleBlack",
     "params": {
-      "EvtIdx": { "value": -1 },
-      "bypass": { "value": false },
-      "upper": { "value": true }
+      "Drive": 0.4,        // 0.0-1.0 normalized for most amp params
+      "Bass": 0.6,
+      "Mid": 0.7,
+      "Treble": 0.7,
+      "Master": 0.5,
+      "Channel": 0,        // integer choices stay integers
+      "Bright": 1
     }
-  }
+  },
+  "cab": {
+    "model": "HD2_CabMicIr_4x10TweedDiamondWithPan",
+    "params": {
+      "Mic": 0,            // mic type 0-11 (see MIC TYPES table above)
+      "LowCut": 80,        // Hz (literal frequency)
+      "HighCut": 8000,     // Hz
+      "Distance": 0.4,
+      "Level": 0           // dB (literal)
+    }
+  },
+  "fx": [
+    {
+      "slot": "b01",                        // pre-amp: b01-b05; post-amp: b07-b12
+      "model": "HD2_CompressorLAStudioCompMono",
+      "params": { "PeakReduction": 0.55, "Gain": 0.3, "Mix": 1.0 },
+      "snapshotEnabled": [true, true, true, true, true, true, true, true]
+    },
+    {
+      "slot": "b02",
+      "model": "HD2_DistScreamerMono",
+      "params": { "Drive": 0.4, "Tone": 0.55, "Output": 0.6 },
+      "snapshotEnabled": [false, false, true, false, false, false, false, false]
+    },
+    {
+      "slot": "b07",
+      "model": "HD2_Reverb63SpringStereo",
+      "params": { "DecayTime": 0.35, "Mix": 0.18, "Level": 0 },
+      "snapshotEnabled": [true, true, true, true, true, true, true, true]
+    }
+  ],
+  "snapshots": [
+    { "name": "VERSE" },
+    { "name": "CHORUS" },
+    { "name": "SOLO" },
+    null, null, null, null, null
+  ],
+  "tempo": 120
 }
 
-================================================================
-OUTPUT FORMAT
-================================================================
-
-Always output a complete, valid .hsp JSON with:
-1. "rpshnosj" prefix (no newline before the {)
-2. meta object with preset name
-3. preset object with full flow array
-4. 8 named snapshots
-5. Appropriate footswitch sources
-6. Complete block chain: input → fx → amp → cab → fx → output
-
-Values must be exact types: numbers for Hz/dB, 0.0-1.0 for normalized, booleans for toggles.
+RULES:
+- "snapshotEnabled" arrays MUST be exactly 8 booleans (one per snapshot 1-8).
+- Use the model IDs from the COMPLETE MODEL LIBRARY above. Never invent IDs.
+- Slot reservations on Helix Stadium:
+    b00 = INPUT (reserved)
+    b01-b05 = Pre-amp FX slots (comp / drives / wah / pre-EQ)
+    b06 = AMP (reserved — set in "amp" key, NOT in "fx" array)
+    b07 = CAB (reserved — set in "cab" key, NOT in "fx" array)
+    b08-b12 = Post-amp FX slots (post-EQ / delay / reverb / modulation / pitch)
+    b13 = OUTPUT (reserved)
+- NEVER put an entry in the "fx" array with slot "b00", "b06", "b07", or "b13".
+- Don't include amp or cab in the "fx" array — they go in their own keys.
+- Snapshot array is exactly 8 entries. Use null for unused snapshot slots.
+- For cover-song mode, also include "sections" array (see cover prompt).
+- Output ONLY the JSON — no markdown fences, no commentary.
 `;
 
 // Model ID quick reference for programmatic use

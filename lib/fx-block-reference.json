@@ -1,0 +1,68 @@
+{
+    "@enabled":  {
+                     "controller":  {
+                                        "behavior":  "latching",
+                                        "bypassed":  false,
+                                        "curve":  "linear",
+                                        "delay":  0,
+                                        "goid":  0,
+                                        "max":  true,
+                                        "midisource":  0,
+                                        "min":  false,
+                                        "source":  16843014,
+                                        "threshold":  0.0,
+                                        "type":  "targetbypass"
+                                    },
+                     "snapshots":  [
+                                       false,
+                                       false,
+                                       false,
+                                       false,
+                                       false,
+                                       false,
+                                       false,
+                                       false
+                                   ],
+                     "value":  false
+                 },
+    "favorite":  0,
+    "harness":  {
+                    "@enabled":  {
+                                     "value":  true
+                                 },
+                    "params":  {
+                                   "EvtIdx":  {
+                                                  "value":  -1
+                                              },
+                                   "bypass":  {
+                                                  "value":  false
+                                              },
+                                   "upper":  {
+                                                 "value":  true
+                                             }
+                               }
+                },
+    "path":  0,
+    "position":  1,
+    "slot":  [
+                 {
+                     "@enabled":  {
+                                      "value":  true
+                                  },
+                     "model":  "HD2_DistKinkyBoostMono",
+                     "params":  {
+                                    "Boost":  {
+                                                  "value":  true
+                                              },
+                                    "Bright":  {
+                                                   "value":  true
+                                               },
+                                    "Drive":  {
+                                                  "value":  0.4699999988079071
+                                              }
+                                },
+                     "version":  0
+                 }
+             ],
+    "type":  "fx"
+}
