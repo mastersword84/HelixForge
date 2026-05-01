@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { HELIX_SYSTEM_PROMPT } from "@/lib/helix-knowledge";
 import { lookupSong, buildSectionSummaryForForge } from "@/lib/song-lookup";
-import { applyDecisions, PresetDecisions, SectionMeta } from "@/lib/preset-template";
+import { applyDecisions, InvalidModelError, PresetDecisions, SectionMeta } from "@/lib/preset-template";
 import { buildFewShotContext } from "@/lib/preset-library";
 
 const client = new Anthropic();
@@ -213,6 +213,19 @@ export async function POST(req: NextRequest) {
     try {
       appliedPreset = applyDecisions(parsed.decisions);
     } catch (err) {
+      if (err instanceof InvalidModelError) {
+        // Hallucinated model IDs would crash the Stadium firmware on import.
+        // Refuse to ship the preset and tell the client to retry.
+        console.error("Rejected hallucinated models:", err.invalidModels);
+        return NextResponse.json(
+          {
+            error: "Generation rejected — one or more model IDs aren't in your Stadium catalog. Retry generation.",
+            reason: "invalid_models",
+            invalidModels: err.invalidModels,
+          },
+          { status: 422 }
+        );
+      }
       console.error("Template application failed:", err);
       return NextResponse.json(
         { error: `Could not apply decisions to template: ${err instanceof Error ? err.message : "unknown error"}` },

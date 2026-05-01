@@ -9,6 +9,7 @@
 
 import templateJson from "./preset-template.json";
 import fxBlockReference from "./fx-block-reference.json";
+import catalog from "./helix-catalog.json";
 
 // ── Decisions: what Claude outputs ─────────────────────────
 export interface PresetDecisions {
@@ -173,11 +174,51 @@ export interface AppliedPreset {
 }
 
 /**
+ * Hard validation: every model ID Claude picked must exist in the
+ * mined catalog. If any is unknown, throw — never let an unverified
+ * preset reach the user's Stadium (hallucinated IDs caused a boot
+ * loop on 2026-04-30; that must not happen again).
+ */
+export class InvalidModelError extends Error {
+  constructor(public invalidModels: Array<{ slot: string; type: string; model: string }>) {
+    const lines = invalidModels.map((m) => `  ${m.type} @ ${m.slot}: "${m.model}"`);
+    super(`Decisions reference ${invalidModels.length} model ID(s) not in the Stadium catalog. Generation rejected to protect the device:\n${lines.join("\n")}`);
+    this.name = "InvalidModelError";
+  }
+}
+
+const CATALOG_AMPS = new Set(Object.keys(catalog.amps));
+const CATALOG_CABS = new Set(Object.keys(catalog.cabs));
+const CATALOG_FX = new Set(Object.keys(catalog.fx));
+
+export function validateDecisions(decisions: PresetDecisions): void {
+  const invalid: Array<{ slot: string; type: string; model: string }> = [];
+
+  if (!CATALOG_AMPS.has(decisions.amp.model)) {
+    invalid.push({ slot: "amp", type: "amp", model: decisions.amp.model });
+  }
+  if (!CATALOG_CABS.has(decisions.cab.model)) {
+    invalid.push({ slot: "cab", type: "cab", model: decisions.cab.model });
+  }
+  for (const fx of decisions.fx ?? []) {
+    if (!CATALOG_FX.has(fx.model)) {
+      invalid.push({ slot: fx.slot, type: "fx", model: fx.model });
+    }
+  }
+
+  if (invalid.length > 0) throw new InvalidModelError(invalid);
+}
+
+/**
  * Apply Claude's decisions to the preset template, producing a complete,
  * schema-valid Helix Stadium preset object ready to be wrapped with
  * the "rpshnosj" header.
  */
 export function applyDecisions(decisions: PresetDecisions): AppliedPreset {
+  // Hard fail before we touch the template if any model ID is unknown.
+  // Hallucinated IDs can crash the Stadium firmware on import.
+  validateDecisions(decisions);
+
   const result = deepClone(templateJson) as { meta: JsonObj; preset: JsonObj };
 
   // ── meta ───────────────────────────────────────────────
