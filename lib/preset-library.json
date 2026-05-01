@@ -1,0 +1,2245 @@
+{
+  "generatedAt": "2026-05-01T07:54:17.142Z",
+  "presetCount": 69,
+  "presets": [
+    {
+      "file": "2 Guitar Rig.hsp",
+      "name": "2 Guitar Rig",
+      "info": "Instrument: Les Paul (all pickups)\nPlayback System: Studio headphones\n\nThis is a 2-guitar starting point for anyone wanting to jam with a buddy or control your 2nd guitarists tones. I use this type of set up on tour and it works great. Recommend you pan each of the outputs hard left and right to separate the signals.\n\nSnap 1: Base tone - Cleanish starting tone\nSnap 2: LIGHT ODS - OD pedals engaged\nSnap 3: GAINZZ - Lots of gain on both\nSnap 4: Gain Delay - Gain pedals on with some delay\nSnap 5: Clean Slap - Clean tones with slap back echo\nSnap 6: OD Delays - Overdrive tones with some delay",
+      "amps": [
+        "Agoura_AmpBritPlexi",
+        "Agoura_AmpEssexTB30CC"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x12OpenCreamWithPan",
+        "HD2_CabMicIr_2x12SilverBellWithPan"
+      ],
+      "fx": [
+        "HD2_VolPanVolMono",
+        "HD2_DistHorizonDriveMono",
+        "HD2_DistPrizeDriveMono",
+        "HD2_DelayTransistorTapeMono",
+        "VIC_DynPlateMono",
+        "HD2_VolPanVolMono",
+        "HD2_DistTeemahMono",
+        "HD2_DistDerangedMasterMono",
+        "HD2_DL4AnalogDelayStereo",
+        "HD2_ReverbHxSpringMono"
+      ],
+      "fxCount": 10,
+      "tags": [
+        "british",
+        "chime",
+        "classic-rock",
+        "lush-reverb",
+        "spring-reverb",
+        "tape-delay",
+        "vintage"
+      ]
+    },
+    {
+      "file": "Abe Linkin.hsp",
+      "name": "Abe Linkin",
+      "info": "Instrument: RG470 (bridge humbucker)\nPlayback System: Studio monitors, headphones\n\nSnap 1: Cleanish - Low Jack\nSnap 2: Rhythm - High Jack with Scream 808\nSnap 3: Solo - High Jack with Scream 808 and Gain boost\nSnap 4: Delay - High Jack with Ducked Delay\nSnap 5: Phasey - High Jack with Scream 808 and light Script Mod Phase\n\nEXP 2: Volume",
+      "amps": [
+        "Agoura_AmpBrit2203MV"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x121960AT75WithPan"
+      ],
+      "fx": [
+        "HD2_DistScream808Mono",
+        "HD2_PhaserScriptModPhaseMono",
+        "HD2_DelayDuckedDelayMono",
+        "VIC_ReverbRotatingMono",
+        "HD2_VolPanGainMono"
+      ],
+      "fxCount": 5,
+      "tags": [
+        "british",
+        "crunch",
+        "phaser",
+        "rock",
+        "tubescreamer"
+      ]
+    },
+    {
+      "file": "Badonkulous!.hsp",
+      "name": "Badonkulous!",
+      "info": "Instrument: 8 (or 7) string guitar with bridge humbucker\nPlayback System: Studio monitors, FRFR\n\nSnap 1: 8 Str Rtm - 8-string metal rhythm tone\nSnap 2: 8 Str Cln - 8-string clean tone\nSnap 3: 8 Str Lead - 8-string lead tone\nSnap 4: 8 Str LoFi - Lo-fi clean tone\nSnap 5: Chainsaw - Filthy chainsaw tone\nSnap 6: Ld Wham - Lead tone with whammy\nSnap 7: 8 Str Cnch - 8-string crunch tone\n\nEXP 1: Pitch Wham\nEXP 2: Volume",
+      "amps": [
+        "HD2_AmpJazzRivet120",
+        "HD2_AmpLine6Badonk"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12CaliV30WithPan"
+      ],
+      "fx": [
+        "HD2_VolPanVolMono",
+        "HD2_PitchPitchWhamMono",
+        "HD2_DistSwedishChainsawMono",
+        "HD2_DistScream808Mono",
+        "HD2_ChorusStereo",
+        "TapeEater",
+        "HX2_EQParametricMono",
+        "HD2_DelaySimpleDelayStereo",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 9,
+      "tags": [
+        "chorus",
+        "clean",
+        "country",
+        "delay",
+        "funk",
+        "jazz",
+        "lush-reverb",
+        "pitch-shift",
+        "tubescreamer"
+      ]
+    },
+    {
+      "file": "BAS_4 PRO 4 Pros.hsp",
+      "name": "BAS:4 PRO 4 Pros",
+      "info": "Instrument: Yamaha BB734A\nPlayback System: Studio monitors\n\nSnap 1: CleanPunch - Dynamic, no-frills, clean bass sound that fits almost any context\nSnap 2: DirtyPunch - Snap 1 + Teemah drive for an aggressive bite\nSnap 3: Slap Scoop - Scooped mids + boosted highs for slap definition\nSnap 4: Solo Boost - Slight boost in the mids, boost in overall volume for bass solos\nSnap 5: Phat Synth - Octave pedal with almost no dry signal; classic sub-bass synth tone\nSnap 6: Wet Synth - Growler pedal for a more expressive synth tone\nSnap 7: Funk Env - Growler as a gritty envelope filter for a funky tone\nSnap 8: FilthyLead - Ultra-compressed, fuzzed out octave up synth tone for lead lines\n\nStomp A1: Always-on Parametric EQ mostly serves as a conservative hi/lo cut, but some snapshots have boosts/cuts where appropriate. Use this to shape the preset for your specific bass. Gain for each band is snapshot-enabled\nStomp A2: Regal Bass DI adds a slight sheen and warmth to the tone\nStomp A3: Always-on LA Studio Comp adds a moderate amount of compression\nStomp A4: Teemah! makes for a gritty but punchy overdrive that works in most contexts\nStomp A5: Limiter catches any peaks that would otherwise clip the output\nStomp A7: Mutes Path 2A (DI signal)\nStomp A8: Boctaver set to be mostly just the -1 Oct signal\nStomp A9: Growler adds an envelope filter-like synth layer\nStomp A10: DI Limiter catches any peaks that would otherwise clip the output\n\nEXP 2: Volume (both paths)",
+      "amps": [
+        "HD2_AmpSVT4Pro"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x10AmpegProWithPan"
+      ],
+      "fx": [
+        "HX2_EQParametricMono",
+        "VIC_PitchBoctaverMono",
+        "HD2_FM4Growler",
+        "HD2_DistRegalBassDIMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_DistTeemahMono",
+        "HX2_CompressorRochesterCompMono",
+        "HD2_VolPanVolMono",
+        "HD2_VolPanGainMono",
+        "HX2_EQParametricMono",
+        "HX2_CompressorDeluxeCompMono",
+        "HX2_CompressorRochesterCompMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 13,
+      "tags": [
+        "bass",
+        "compression",
+        "pitch-shift"
+      ]
+    },
+    {
+      "file": "BAS_AmpegSquared.hsp",
+      "name": "BAS:AmpegSquared",
+      "info": "Instrument: Yamaha BB734A\nPlayback System: Studio monitors\n\nSnap 1: 50/50 - Even split between Ampeg SVT 50th & B15NF 66\nSnap 2: 75/25 SVT - Mostly SVT with a bit of B15\nSnap 3: 75/25 B15 - Mostly B15 with a bit of SVT\nSnap 4: Dual Grit - Even split, higher gain on both amps\n\nStomp A7: Optical compression for punchiness\nStomp A8: Parallel overdrive for additional bite\nStomp A9: Toggles the SVT's Ultra Lo on/off\nStomp A10: Toggles the SVT's Ultra Hi on/off\n\nEXP 1: Controls split between SVT (toe) & B15 (heel)\nEXP 2: Volume",
+      "amps": [
+        "Agoura_AmpAmpegSVT",
+        "Agoura_AmpAmpegB15NF66"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x15AmpegB15WithPan"
+      ],
+      "fx": [
+        "HX2_CompressorOptoCompMono",
+        "HD2_DistTeemahMono",
+        "HX2_CompressorRochesterCompMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 4,
+      "tags": [
+        "bass",
+        "compression"
+      ]
+    },
+    {
+      "file": "BAS_Djentrified.hsp",
+      "name": "BAS:Djentrified",
+      "info": "Instrument: Abasi Larada (boosted treble)\nPlayback System: Studio monitors\n\nSnap 1: Clank - Swedish Chainsaw applied to high frequencies only\nSnap 2: More Mids - Full-bodied distortion tone\nSnap 3: Amp Grit - Mandarin Plus 200, higher gain\nSnap 4: UltraClean - Lots of headroom & presence\n\nStomp A8: Always-on compression to tighten up signal\nStomp A9: Toggles DI signal (Path 2A) on/off for extra clarity\nStomp A10: Distorts high frequencies only\nStomp A11: Compresses low frequencies only\n\nEXP 1: Hype parameter for Mandarin Plus 200\nEXP 2: Volume (both paths)",
+      "amps": [
+        "Agoura_AmpMandarinPlus200"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x15BruteWithPan"
+      ],
+      "fx": [
+        "HX2_EQParametricMono",
+        "HX2_CompressorDeluxeCompMono",
+        "HX2_CompressorDeluxeCompMono",
+        "HX2_EQParametricMono",
+        "HD2_VolPanVolMono",
+        "HX2_EQParametricMono",
+        "HD2_DistSwedishChainsawMono",
+        "HD2_DistRegalBassDIMono",
+        "HX2_EQParametricMono",
+        "HX2_CompressorDeluxeCompMono",
+        "HD2_VolPanGainMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 12,
+      "tags": [
+        "compression",
+        "fuzz-friendly",
+        "metal",
+        "orange",
+        "stoner-rock"
+      ]
+    },
+    {
+      "file": "BAS_Drip Pro.hsp",
+      "name": "BAS:Drip Pro",
+      "info": "Hybrid monster from He...aven! Snapshots cover smooth pro drip to outright mayhem.\n\nInstrument: Fender American Professional Jazz bass (round wounds)\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Phat\nSnap 2: Monster\nSnap 3: Dimension\nSnap 4: Boosted\nSnap 5: Mo Phat\nSnap 6: Terror\nSnap 7: Mo Terror\nSnap 8: All In",
+      "amps": [
+        "Agoura_AmpUSDripBass",
+        "HD2_AmpSVT4Pro"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x15USDripmanWithPan",
+        "HD2_CabMicIr_4x10AmpegProWithPan"
+      ],
+      "fx": [
+        "HD2_DistRegalBassDIMono",
+        "HD2_DistZeroAmpBassDIMono",
+        "HD2_ChorusAmpegLiquifierStereo",
+        "HD2_DM4BassOctaver",
+        "HX2_CompressorLAStudioCompStereo",
+        "HD2_VolPanVolMono",
+        "HD2_DistRegalBassDIMono",
+        "HD2_DistTeemahMono",
+        "HD2_Chorus4VoiceStereo",
+        "HD2_DM4BassOctaver",
+        "HX2_CompressorLAStudioCompStereo",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 12,
+      "tags": [
+        "bass",
+        "chorus",
+        "compression",
+        "pitch-shift"
+      ]
+    },
+    {
+      "file": "BAS_Flats Fun.hsp",
+      "name": "BAS:Flats Fun",
+      "info": "Inspired by someone who rhymes with Game Installah. This one will get ya' in the indie rock hall of fame!\n\nInstrument: Guild Starfire I bass (flatwounds and pick)\nPlayback System: Studio Monitors, FRFR\n\nSnap 1: Standard\nSnap 2: Booster\nSnap 3: To Tape\nSnap 4: 2 For 1\nSnap 5: 3 For 1\nSnap 6: Grindin\nSnap 7: Beefcake\nSnap 8: WildGazell",
+      "amps": [
+        "Agoura_AmpAmpegB15NF66"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x15AmpegB15WithPan"
+      ],
+      "fx": [
+        "HX2_CompressorRochesterCompMono",
+        "HD2_DelayDoubleDoubleMono",
+        "HD2_DistKinkyBoostMono",
+        "HD2_DistAmpegScramblerODMono",
+        "HD2_DM4BassOctaver",
+        "HD2_EQGraphic10BandMono",
+        "HX2_CompressorLAStudioCompStereo",
+        "HD2_RetroReelMono",
+        "HD2_VolPanVolMono",
+        "HD2_DistRegalBassDIMono",
+        "HX2_CompressorLAStudioCompStereo",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 12,
+      "tags": [
+        "bass",
+        "compression",
+        "pitch-shift"
+      ]
+    },
+    {
+      "file": "BAS_Fresh n Clean.hsp",
+      "name": "BAS:Fresh n Clean",
+      "info": "Sometimes you just want phat and clean tone with no frills... Oh, except I threw in a guitar amp. Snapshot 3 really has the sauce.\n\nInstrument: StingRay 5\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Clean\nSnap 2: Brightus\nSnap 3: Wohm\nSnap 4: Weird",
+      "amps": [
+        "Agoura_AmpWhoWatt103",
+        "Agoura_AmpAgua751"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x12EpicenterWithPan",
+        "HD2_CabMicIr_4x10GardenWithPan"
+      ],
+      "fx": [
+        "HD2_DistRegalBassDIMono",
+        "HX2_CompressorOptoCompMono",
+        "HX2_FilterAutoFilterMono",
+        "HD2_ChorusTrinityChorusStereo",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono",
+        "HD2_DistZeroAmpBassDIMono",
+        "HX2_CompressorOptoCompMono",
+        "HD2_RetroReelMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 11,
+      "tags": [
+        "bass",
+        "british",
+        "chorus",
+        "clean",
+        "compression",
+        "rock",
+        "studio"
+      ]
+    },
+    {
+      "file": "BAS_Fret Free.hsp",
+      "name": "BAS:Fret Free",
+      "info": "For all my fretless freaks out there. Get your buttery smooth on!\n\nInstrument: American Custom ’62 Jazz Fretless bass (60/40 bridge/neck pickup blend with rounds; fretless, not upright)\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Butter\nSnap 2: Bright\nSnap 3: Scooped\nSnap 4: You Crazy",
+      "amps": [
+        "HD2_AmpWoodyBlue",
+        "HD2_AmpSVT4Pro"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x15BruteWithPan",
+        "HD2_CabMicIr_4x10AmpegProWithPan"
+      ],
+      "fx": [
+        "HX2_CompressorOptoCompMono",
+        "HD2_ChorusAmpegLiquifierStereo",
+        "VIC_ReverbDynAmbienceStereo",
+        "HX2_CompressorDeluxeCompStereo",
+        "HD2_VolPanVolStereo",
+        "HD2_DistRegalBassDIMono",
+        "HD2_ChorusTrinityChorusStereo",
+        "HX2_CompressorOptoCompStereo",
+        "HD2_VolPanVolStereo"
+      ],
+      "fxCount": 9,
+      "tags": [
+        "acoustic-friendly",
+        "bass",
+        "chorus",
+        "compression"
+      ]
+    },
+    {
+      "file": "BAS_Goliathan.hsp",
+      "name": "BAS:Goliathan",
+      "info": "Snapshots go from Tame to a Goliath beast that deserves the moniker \"lead bass.\"\n\nInstrument: Limited Edition Player Plus II Precision bass (with rounds and a pick)\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Tame\nSnap 2: Girth\nSnap 3: Swirly\nSnap 4: Brutal\nSnap 5: Goliath",
+      "amps": [
+        "Agoura_AmpBritMegaBass",
+        "HD2_AmpBusyOneJump"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x10GardenWithPan",
+        "HD2_CabMicIr_8x10SVTAVWithPan"
+      ],
+      "fx": [
+        "HD2_Chorus70sChorusMono",
+        "HD2_DistPrizeDriveMono",
+        "HD2_DistAlpacaRougeMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono",
+        "VIC_PitchBoctaverMono",
+        "HD2_PhaserScriptModPhaseMono",
+        "HD2_DistAmpegScramblerODMono",
+        "HX2_CompressorRochesterCompMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 10,
+      "tags": [
+        "bass",
+        "chorus",
+        "compression",
+        "fuzz",
+        "phaser",
+        "pitch-shift",
+        "vintage"
+      ]
+    },
+    {
+      "file": "BAS_Liberati Vibes.hsp",
+      "name": "BAS:Liberati Vibes",
+      "info": "All the tools of the trade for cinematic pop. So what, I like chorus.\n\nInstrument: American Vintage 54' P bass (rounds, thumb style)\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Start Here\nSnap 2: Picked\nSnap 3: Modded\nSnap 4: Phased\nSnap 5: Octo\nSnap 6: Crunch",
+      "amps": [
+        "Agoura_AmpAmpegSVT",
+        "HD2_AmpSVT4Pro"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_8x10SVTAVWithPan",
+        "HD2_CabMicIr_1x15AmpegB15WithPan"
+      ],
+      "fx": [
+        "HX2_CompressorRochesterCompMono",
+        "VIC_PitchBoctaverMono",
+        "HD2_ChorusAmpegLiquifierMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono",
+        "HD2_DistRegalBassDIMono",
+        "HD2_DistZeroAmpBassDIMono",
+        "HX2_CompressorRochesterCompMono",
+        "HD2_PhaserDeluxePhaserMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 10,
+      "tags": [
+        "bass",
+        "chorus",
+        "compression",
+        "phaser",
+        "pitch-shift"
+      ]
+    },
+    {
+      "file": "BAS_Live n Let DI.hsp",
+      "name": "BAS:Live n Let DI",
+      "info": "5 levels of PHAT, baby! Producers wish we all lived by this code.\n\nInstrument: American Professional Jazz bass (both pickups with rounds)\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Phat 1\nSnap 2: Phat 2\nSnap 3: Phat 3\nSnap 4: Phat 4\nSnap 5: Phat 5",
+      "amps": [],
+      "cabs": [],
+      "fx": [
+        "HD2_DistZeroAmpBassDIMono",
+        "HD2_DistKinkyBoostMono",
+        "HD2_RetroReelMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono",
+        "HD2_DistRegalBassDIMono",
+        "HD2_DistKinkyBoostMono",
+        "VIC_PitchBoctaverMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 10,
+      "tags": [
+        "compression",
+        "pitch-shift"
+      ]
+    },
+    {
+      "file": "BAS_Ode to Dino.hsp",
+      "name": "BAS:Ode to Dino",
+      "info": "All Ampeg, all day long. An ode to my friend, the one, the only, Ampeg guy. Snapshot 1 and 2 will get ya talkin'.\n\nInstrument: American Professional Jazz bass (both pickups with rounds)\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Awptos\nSnap 2: Pwartaflex\nSnap 3: Liquid\nSnap 4: SVT Time!",
+      "amps": [
+        "Agoura_AmpAmpegSVT",
+        "Agoura_AmpAmpegB15NF66",
+        "HD2_AmpSVT4Pro"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_8x10SVTAVWithPan",
+        "HD2_CabMicIr_1x15AmpegB15WithPan",
+        "HD2_CabMicIr_4x10AmpegProWithPan"
+      ],
+      "fx": [
+        "HX2_CompressorOptoCompMono",
+        "HD2_DistAmpegScramblerODMono",
+        "HD2_ChorusAmpegLiquifierMono",
+        "HD2_VolPanVolMono",
+        "HX2_CompressorOptoCompMono",
+        "HD2_VolPanVolMono",
+        "HX2_CompressorOptoCompMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 8,
+      "tags": [
+        "bass",
+        "chorus",
+        "compression"
+      ]
+    },
+    {
+      "file": "BAS_Pick-King.hsp",
+      "name": "BAS:Pick-King",
+      "info": "Snapshots cover various flavors of overdrive and distortion for bass. No wrong answers here; grab that plec and make some noise! \n\nInstrument: Limited Edition Player II Precision bass\nPlayback System: Studio Monitors, FRFR\n\nSnap 1: Standard\nSnap 2: Boosted\nSnap 3: Classic\nSnap 4: Scrambled\nSnap 5: Scoopy\nSnap 6: Hi and Lo\nSnap 7: Clank!\nSnap 8: Fuzzy",
+      "amps": [
+        "Agoura_AmpAmpegSVT"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_8x10SVTAVWithPan"
+      ],
+      "fx": [
+        "HX2_CompressorOptoCompMono",
+        "HD2_DistKinkyBoostMono",
+        "HD2_DistMinotaurMono",
+        "HD2_DistObsidian7000Mono",
+        "HD2_DistZeroAmpBassDIMono",
+        "HD2_DistKWBMono",
+        "HD2_DistAmpegScramblerODMono",
+        "HD2_DistClawthornDriveMono",
+        "HD2_DistRegalBassDIMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 13,
+      "tags": [
+        "bass",
+        "compression",
+        "klon"
+      ]
+    },
+    {
+      "file": "BAS_Rock Legends.hsp",
+      "name": "BAS:Rock Legends",
+      "info": "The legend of the BASS was way hardcore! This is what it sounds like when an SVT and a Bassman walk into a bar.\n\nInstrument: Limited Edition Player Plus II Precision bass (with rounds and a pick)\nPlayback System: Studio Monitors, FRFR\n\nSnap 1: Legendary\nSnap 2: Clean\nSnap 3: Deep\nSnap 4: Meat",
+      "amps": [
+        "Agoura_AmpUSDripBass",
+        "Agoura_AmpAmpegSVT"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x15USDripmanWithPan",
+        "HD2_CabMicIr_8x10SVTAVWithPan"
+      ],
+      "fx": [
+        "HD2_DistMinotaurMono",
+        "HX2_CompressorOptoCompMono",
+        "HD2_VolPanVolMono",
+        "HD2_DistZeroAmpBassDIMono",
+        "VIC_PitchBoctaverMono",
+        "HD2_DistAmpegScramblerODMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 8,
+      "tags": [
+        "bass",
+        "compression",
+        "klon",
+        "pitch-shift",
+        "rock"
+      ]
+    },
+    {
+      "file": "BAS_Slap City.hsp",
+      "name": "BAS:Slap City",
+      "info": "...Population: YOU. Various slap sounds to ensure you’ll get booted from the band. But they don’t deserve you anyway.\n\nInstrument: American Professional Jazz bass (neck pickup with rounds)\nPlayback System: Studio Monitors, FRFR\n\nSnap 1: Smashed\nSnap 2: Open\nSnap 3: Hot\nSnap 4: Modless",
+      "amps": [
+        "HD2_AmpSVT4Pro"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x10AmpegProWithPan"
+      ],
+      "fx": [
+        "HD2_DistRegalBassDIMono",
+        "HX2_CompressorOptoCompMono",
+        "HD2_ChorusAmpegLiquifierMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono",
+        "HD2_DistRegalBassDIMono",
+        "HX2_CompressorRochesterCompMono",
+        "HD2_Chorus70sChorusMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 10,
+      "tags": [
+        "bass",
+        "chorus",
+        "compression"
+      ]
+    },
+    {
+      "file": "BAS_Thunderwear.hsp",
+      "name": "BAS:Thunderwear",
+      "info": "It puts the thundah...down undah. The snapshots will take you through a cosmic bass journey you won't forget.\n\nInstrument: '54 Precision bass with round wounds\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Clean Fun\nSnap 2: Add Girth\nSnap 3: Trip 1\nSnap 4: Trip 2\nSnap 5: Trip 3\nSnap 6: Bass Dream",
+      "amps": [
+        "HD2_PreampAguaSledge",
+        "HD2_PreampWoodyBlue"
+      ],
+      "cabs": [],
+      "fx": [
+        "HD2_DistRegalBassDIMono",
+        "HD2_VibratoBubbleVibratoMono",
+        "HD2_RetroReelStereo",
+        "HD2_DelayDuckedDelayStereo",
+        "HD2_VolPanVolStereo",
+        "VIC_PitchBoctaverMono",
+        "HD2_DistRegalBassDIMono",
+        "HD2_PhaserScriptModPhaseStereo",
+        "HD2_DelayDoubleDoubleMono",
+        "HD2_DelayCosmosEchoStereo",
+        "VIC_ReverbDynRoomStereo",
+        "HD2_VolPanVolStereo"
+      ],
+      "fxCount": 12,
+      "tags": [
+        "acoustic-friendly",
+        "ambient",
+        "bass",
+        "phaser",
+        "pitch-shift",
+        "rat-distortion",
+        "vibrato"
+      ]
+    },
+    {
+      "file": "BAS_Track-King.hsp",
+      "name": "BAS:Track-King",
+      "info": "A studio bassist's dream. Snapshots cover various flavors of studio-quality tones.\n\nInstrument: American '60s Precision bass with flats\nPlayback: Studio Monitors, FRFR\n\nSnap 1: Standard\nSnap 2: Hairy\nSnap 3: Squishy\nSnap 4: Crunchy",
+      "amps": [
+        "Agoura_AmpAmpegB15NF66",
+        "Agoura_AmpUSDripBass"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x15AmpegB15WithPan",
+        "HD2_CabMicIr_2x15USDripmanWithPan"
+      ],
+      "fx": [
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono",
+        "HD2_DistRegalBassDIMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 5,
+      "tags": [
+        "bass",
+        "compression"
+      ]
+    },
+    {
+      "file": "Black Velvet.hsp",
+      "name": "Black Velvet",
+      "info": "Instrument: '50's Custom Shop Strat (neck and middle Pickups)\nPlayback System: Studio monitors, FRFR, headphones\n\nSnap 1: Clean\nSnap 2: Push 1 - Default for clip\nSnap 3: Push 2\nSnap 4: Push 3",
+      "amps": [
+        "Agoura_AmpUSLuxeBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x12USDeluxeWithPan"
+      ],
+      "fx": [
+        "HD2_WahTeardrop310Mono",
+        "HX2_EQParametricStereo",
+        "HD2_DelayTransistorTapeStereo",
+        "VIC_ReverbDynAmbienceStereo",
+        "HX2_CompressorLAStudioCompStereo",
+        "HD2_VolPanVolStereo"
+      ],
+      "fxCount": 6,
+      "tags": [
+        "blues",
+        "clean",
+        "compression",
+        "country",
+        "fender",
+        "tape-delay",
+        "wah"
+      ]
+    },
+    {
+      "file": "Blue Dive.hsp",
+      "name": "Blue Dive",
+      "info": "Instrument: Dustin Kensrue Artist Series Music Man Stingray (neck pickup)\nPlayback System: Studio monitors, headphones\n\nSnap 1: Flood\nSnap 2: Spring\nSnap 3: Warble\nSnap 4: Stream",
+      "amps": [
+        "Agoura_AmpUSLuxeBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x12USDeluxeWithPan"
+      ],
+      "fx": [
+        "HD2_WahFasselMono",
+        "HD2_VolPanVolMono",
+        "HD2_DistMinotaurMono",
+        "HD2_PhaserUbiquitousVibeMono",
+        "HD2_ReverbHxSpringMono",
+        "HD2_DelayAdriaticDelayMono",
+        "HD2_DelayCosmosEchoMono",
+        "HD2_RetroReelMono",
+        "HD2_ReverbGlitzStereo"
+      ],
+      "fxCount": 9,
+      "tags": [
+        "ambient",
+        "blues",
+        "clean",
+        "country",
+        "delay",
+        "fender",
+        "klon",
+        "phaser",
+        "spring-reverb",
+        "wah"
+      ]
+    },
+    {
+      "file": "Bringin Plexi Back.hsp",
+      "name": "Bringin Plexi Back",
+      "info": "Remember when Midwest Emo was mainstream? ...(yeah!) Not like it was ever actually gone.\n\nInstrument: Guild Polara Deluxe\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Crunch\nSnap 2: Punch\nSnap 3: Wide\nSnap 4: Lead",
+      "amps": [
+        "Agoura_AmpBritPlexi"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12Greenback30WithPan"
+      ],
+      "fx": [
+        "HX2_CompressorKinkyCompMono",
+        "HD2_DistPrizeDriveMono",
+        "HD2_RetroReelMono",
+        "HX2_CompressorLAStudioCompStereo",
+        "HD2_VolPanVolStereo",
+        "HD2_DelayDuckedDelayStereo",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 7,
+      "tags": [
+        "british",
+        "classic-rock",
+        "compression",
+        "lush-reverb",
+        "vintage"
+      ]
+    },
+    {
+      "file": "Brit MegaGuitar.hsp",
+      "name": "Brit MegaGuitar",
+      "info": "In the 'Bass' category you’ll find the 'Brit MegaBass' model, but this preset utilizes it for electric guitar. Includes an enormous variety of effects and snapshots, going from clean to huge leads, ambient, and modulated sounds. Stomp A mode gives you access to most of the included effects, including drives, fuzz, delays, modulation, pitch, and reverbs.\n\nInstrument: HSS Strat (2 position)\nPlayback System: Studio monitors, headphones\n\nSnap 1: Clean Dot8 - Clean tone with dotted 8th delay\nSnap 2: Drive - Stage 1 drive (Minotaur)\nSnap 3: Drive + - Stage 2 drive (Prize Drive)\nSnap 4: Lead - Solo/lead tone\nSnap 5: Fuzz - ...Fuzz\nSnap 6: Mega Mod - Two different types of modulation in series with rhythmic delays\nSnap 7: Ambi Clean - Clean tone with big delay and reverb\nSnap 8: Ambi Lead - Lead tone with big delay and reverb (play melodic lead lines)",
+      "amps": [
+        "Agoura_AmpBritMegaBass"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12UberV30WithPan"
+      ],
+      "fx": [
+        "HD2_DistDarkDoveFuzzStereo",
+        "HX2_CompressorDeluxeCompMono",
+        "HD2_DistMinotaurMono",
+        "HD2_DistPrizeDriveMono",
+        "HD2_VolPanVolMono",
+        "HD2_CaliQStereo",
+        "HD2_PitchDualPitchStereo",
+        "HD2_ChorusStereo",
+        "HD2_DelayTransistorTapeStereo",
+        "HD2_DelayVintageDigitalStereoV2",
+        "HD2_DelayDualDelayStereo",
+        "HD2_TremoloTremoloStereo",
+        "HD2_ReverbPlateStereo",
+        "VIC_DynPlateStereo",
+        "HD2_VolPanGainStereo"
+      ],
+      "fxCount": 15,
+      "tags": [
+        "bass",
+        "british",
+        "chorus",
+        "classic-rock",
+        "compression",
+        "delay",
+        "fuzz",
+        "klon",
+        "lush-reverb",
+        "pitch-shift",
+        "tape-delay",
+        "tremolo"
+      ]
+    },
+    {
+      "file": "Callisto Chatter.hsp",
+      "name": "Callisto Chatter",
+      "info": "Tip: Use Poly Sustain to create a drone and then Big Lead to play over it.\n\nInstrument: Strat or Tele\nPlayback System: Studio monitors\n\nSnap 1: No glitch – Turns off the Glitch delay\nSnap 2: Big Lead – This is your \"normal\" tone\nSnap 3: Pitch – This is the everything on tone\nSnap 4: No pitch – Turns off the octave up\n",
+      "amps": [
+        "Agoura_AmpUSLuxeBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12CaliV30WithPan"
+      ],
+      "fx": [
+        "HD2_DistHeirApparentMono",
+        "VIC_DelayPolySustain",
+        "HD2_DelayDualDelayStereo",
+        "VIC_DynPlateStereo",
+        "L6SPB_PolyPitch",
+        "VIC_DelayGlitchMono",
+        "HD2_DelayReverseDelayStereo",
+        "HD2_TremoloTremoloStereo",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_RetroReelStereo"
+      ],
+      "fxCount": 10,
+      "tags": [
+        "blues",
+        "clean",
+        "compression",
+        "country",
+        "fender",
+        "lush-reverb",
+        "pitch-shift",
+        "reverse",
+        "tremolo"
+      ]
+    },
+    {
+      "file": "Cine-Plexi.hsp",
+      "name": "Cine-Plexi",
+      "info": "Instrument: Tele, Les Paul, or Strat\nPlayback System: Studio headphones\n\nThis is a \"head start\" preset for the Brit Plexi fans. Use it as a base and build your own rig!\n\nSnap 1: Clean? - Cleanish starting tone\nSnap 2: Dirtier - More gain\nSnap 3: THATCrunch - Super crunchy sound\nSnap 4: Sauced - Maxed out amp",
+      "amps": [
+        "Agoura_AmpBritPlexi"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x12OpenCreamWithPan"
+      ],
+      "fx": [
+        "HD2_DistPocketFuzzMono",
+        "HD2_DistHorizonDriveMono",
+        "HX2_EQParametricMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono",
+        "HD2_DelayBucketBrigadeStereo",
+        "HD2_DelayDuckedDelayStereo",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 8,
+      "tags": [
+        "british",
+        "classic-rock",
+        "compression",
+        "fuzz",
+        "lush-reverb",
+        "tape-delay",
+        "vintage"
+      ]
+    },
+    {
+      "file": "Deconstructed Bliss.hsp",
+      "name": "Deconstructed Bliss",
+      "info": "This is meant to give you elements commonly found in pedals from a popular Minnesota-based boutique pedal maker, in a modular form.\n\nInstrument: Serus H2 (Pure P.A.F. HB bridge pickup)\nPlayback System: Studio monitors\n\nSnap 1: Lost Gen - Auto-voume and insane texture. Play slow!\nSnap 2: Ambi Cln - Your base tone with verb\nSnap 3: Sci-fi Doc - Glitchy and pitchy\nSnap 4: Hot Vinyl - Your vinyl has warped\nSnap 5: No Feet - Auto-volume does the swells for you\n\nEXP 2: Volume",
+      "amps": [
+        "Agoura_AmpUSPrincess76"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x10USPrincessWithPan"
+      ],
+      "fx": [
+        "HD2_DistHeirApparentMono",
+        "HD2_DL4AutoVolStereo",
+        "HD2_VolPanVolMono",
+        "VIC_DelayPolySustain",
+        "HD2_TremoloPatternStereo",
+        "TapeEater",
+        "VIC_DelayGlitchStereo",
+        "HD2_DelayTransistorTapeStereo",
+        "VIC_ReverbShimmerMono",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 10,
+      "tags": [
+        "ambient",
+        "blues",
+        "clean",
+        "fender",
+        "lush-reverb",
+        "small-amp",
+        "tape-delay",
+        "tremolo"
+      ]
+    },
+    {
+      "file": "Deluxe Gig.hsp",
+      "name": "Deluxe Gig",
+      "info": "This one has everything you would need on a typical cover gig. Use pedalboard mode and make some cool snapshots!\n\nInstrument: Les Paul (all pickups), Tele\nPlayback System: Studio headphones\n\nSnap 1: Cleanest - Uh, most clean one!\nSnap 2: EoB - Because \"Edge of Breakup\" did not fit\nSnap 3: Crunch - Rock rhythm stuff\nSnap 4: On 10! - I put all the knobs to 10\nSnap 5: Ambient - Fun textures for some light picking or swells\nSnap 6: Trem - Some classic tremolo\nSnap 7: Lo Resdryv - Nice drive sound with some Lo Res delay",
+      "amps": [
+        "Agoura_AmpUSLuxeBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x12OpenCreamWithPan"
+      ],
+      "fx": [
+        "HD2_WahThroatyMono",
+        "HD2_DistKinkyBoostMono",
+        "HD2_DistPrizeDriveMono",
+        "HD2_DistHeirApparentMono",
+        "HD2_DL4LowResDelay",
+        "HD2_Tremolo60sBiasTremMono",
+        "HD2_ReverbHxSpringMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolMono",
+        "HD2_CaliQMono",
+        "HD2_VibratoBubbleVibratoMono",
+        "HD2_ChorusTrinityChorusStereo",
+        "HD2_DelayTransistorTapeStereo",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 14,
+      "tags": [
+        "blues",
+        "chorus",
+        "clean",
+        "compression",
+        "country",
+        "fender",
+        "lush-reverb",
+        "rat-distortion",
+        "spring-reverb",
+        "tape-delay",
+        "tremolo",
+        "vibrato",
+        "wah"
+      ]
+    },
+    {
+      "file": "Double Double.hsp",
+      "name": "Double Double",
+      "info": "This preset utilizes two instances of the US Double Black in a stereo configuration, one set to the Normal input and the other to the Vibrato input. All the modulation, delays, and reverbs are placed after the amp/cab blocks. These amp models are big and clean, but sound great when pushed hard with drives. Spring reverb and Optical tremolo are included to simulate playing through the real amps.\n\nClip Instrument: Tele (Bridge position)\nPlayback System: Studio monitors, headphones\n\nSnap 1: Push - Pushed clean tone (Minotaur)\nSnap 2: Clean Slap - Clean tone with slap delay\nSnap 3: Big Rhythm - Stage 2 drive (Prize Drive)\nSnap 4: Lead - Solo/lead tone\nSnap 5: Trem Clean - Clean tone with Opto Tremolo\nSnap 6: Ambi Vbrto - Clean tone with vibrato and big delay/verb\nSnap 7: Rotary Clean - Clean tone rotary\nSnap 8: Dot8th Rtm - Rhythm tone with dotted 8th delay",
+      "amps": [
+        "Agoura_AmpUSDoubleBlack",
+        "Agoura_AmpUSDoubleBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x12USDeluxeWithPan"
+      ],
+      "fx": [
+        "HX2_CompressorDeluxeCompMono",
+        "HD2_DistMinotaurMono",
+        "HD2_DistPrizeDriveMono",
+        "HD2_VolPanVolMono",
+        "HD2_VibratoBubbleVibratoStereo",
+        "HD2_TremoloOpticalTremStereo",
+        "HD2_Rotary145RotaryStereo",
+        "HD2_DelaySimpleDelayStereo",
+        "HD2_DelayTransistorTapeStereo",
+        "HD2_DelayVintageDigitalStereoV2",
+        "HD2_ReverbHxSpringStereo",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 12,
+      "tags": [
+        "blues",
+        "clean",
+        "compression",
+        "country",
+        "delay",
+        "fender",
+        "klon",
+        "leslie",
+        "lush-reverb",
+        "rat-distortion",
+        "spring-reverb",
+        "tape-delay",
+        "tremolo",
+        "vibrato"
+      ]
+    },
+    {
+      "file": "Dreambient.hsp",
+      "name": "Dreambient",
+      "info": "Instrument: Single coil or humbucker pickups\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Glitzy - Ambient dream-like tone\nSnap 2: Vint Dly - Ambient vintage delay and hall reverb\nSnap 3: Tremolo - Tremolo with Hall reverb\nSnap 4: Obi Wah - Obi wah with Glitz reverb\nSnap 5: Dry - Dry compressed clean, no ambient effects\nSnap 6: Chorus - Lush chorus with hall reverb\nSnap 7: Loads - Extremely ambient tone\n\nEXP 1: Wah\nEXP 2: Volume",
+      "amps": [
+        "Agoura_AmpUSPrincess76"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x10USPrincessWithPan"
+      ],
+      "fx": [
+        "HD2_VolPanVolMono",
+        "HD2_WahWeeperMono",
+        "HX2_DM4TubeComp",
+        "HD2_FM4ObiWah",
+        "HD2_Tremolo60sBiasTremMono",
+        "HD2_Chorus70sChorusStereo",
+        "HD2_DelayVintageDigitalStereoV2",
+        "VIC_ReverbRotatingStereo",
+        "HD2_ReverbGlitzStereo"
+      ],
+      "fxCount": 9,
+      "tags": [
+        "ambient",
+        "blues",
+        "chorus",
+        "clean",
+        "compression",
+        "delay",
+        "fender",
+        "small-amp",
+        "tremolo",
+        "wah"
+      ]
+    },
+    {
+      "file": "German Lead.hsp",
+      "name": "German Lead",
+      "info": "Instrument: Excalibur\nPlayback System: Studio monitors, FRFR, headphones\n\nSnap 1: Push 1\nSnap 2: Push 2 - Default for clip\nSnap 3: OD\nSnap 4: Lead w/Dly",
+      "amps": [
+        "Agoura_AmpGermanXtraRed"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12SoloLeadEMWithPan"
+      ],
+      "fx": [
+        "HD2_WahFasselMono",
+        "HX2_EQParametricStereo",
+        "HD2_DelayTransistorTapeStereo",
+        "VIC_DynPlateStereo",
+        "HX2_CompressorLAStudioCompStereo",
+        "HD2_VolPanVolStereo"
+      ],
+      "fxCount": 6,
+      "tags": [
+        "compression",
+        "high-gain",
+        "lead",
+        "lush-reverb",
+        "metal",
+        "modern",
+        "tape-delay",
+        "wah"
+      ]
+    },
+    {
+      "file": "Ichor.hsp",
+      "name": "Ichor",
+      "info": "This preset is created for a mixture of different lead sounds.\n\nInstrument: C1-EX with Colossus bridge pickup\nTuning: DADGAD\nType: Lead\n\nSnap 1: Balanced - Slow chorus, fat and wide, good for octave parts under choruses that get out of the way of vocals\nSnap 2: Dark - Darkened lead sound for sections where the lead should not be in the forefront\nSnap 3: Bright - Guitar solos at the forefront, ripping\nSnap 4: Flash - Harmonized for D minor, reminded me of Flash Gordon harmonies\nSnap 5: Low Spank - Lower gain, great with split coils for spank\nSnap 6: Low Dry - No effects on the Low Spank sound\nSnap 7: Dry Gain - High gain, dry",
+      "amps": [
+        "Agoura_AmpBritPlexi"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12Greenback20WithPan"
+      ],
+      "fx": [
+        "HD2_WahFasselMono",
+        "HD2_DistScream808Mono",
+        "HX2_EQParametricStereo",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_ChorusStereo",
+        "HD2_PitchTwinHarmonyMono",
+        "HD2_DelayCosmosEchoStereo",
+        "HD2_VolPanVolStereo"
+      ],
+      "fxCount": 8,
+      "tags": [
+        "ambient",
+        "british",
+        "chorus",
+        "classic-rock",
+        "compression",
+        "pitch-shift",
+        "tubescreamer",
+        "vintage",
+        "wah"
+      ]
+    },
+    {
+      "file": "Jazzy Jazz.hsp",
+      "name": "Jazzy Jazz",
+      "info": "Instrument: Larry Carlton H7F (neck humbucker)\nPlayback System: Studio monitors, headphones\n\nSnap 1: Clean - Clarity Amp & light reverb\nSnap 2: Old Jazz - Clarity Amp, light reverb, and Heir Apparent for old over-modulated sound \nSnap 3: Spacey - Clarity Amp, light reverb, and delay (split dynamically to only let certain frequencies through to the delay)\nSnap 4: Oct Down - Clarity Amp, light reverb, and Simple Pitch for octave down\n\nEXP 2: Volume",
+      "amps": [
+        "HD2_AmpLine6Clarity"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x12MatchH30WithPan"
+      ],
+      "fx": [
+        "HD2_PitchSimplePitchMono",
+        "HD2_DistHeirApparentMono",
+        "VIC_ReverbDynRoomMono",
+        "HD2_DelayCosmosEchoMono"
+      ],
+      "fxCount": 4,
+      "tags": [
+        "ambient",
+        "clean",
+        "jazz",
+        "pitch-shift",
+        "studio"
+      ]
+    },
+    {
+      "file": "Joe'Riel.hsp",
+      "name": "Joe'Riel",
+      "info": "Using US Drip Bass for a guitar amp to give massive headroom and some tones reminiscent of some of Canada’s finest players.\n\nInstrument: Serus H2 (Pure P.A.F. HB bridge pickup)\nPlayback System: Studio monitors\n\nSnap 1: Raunchy - Some good, huge, fuzzy tone\nSnap 2: Wet Split - Reverb to the left, delay to the right\nSnap 3: Lite OD - Heir Apparent on\nSnap 4: Crunch - Hedgehog on\nSnap 5: Lead - Heir pushing the Hedgehog\nSnap 6: Slap Cln - Forward slap delay only\nSnap 7: Chaos - Hedgehog, Alpaca, harm trem, and wet effects bring the (controlled) chaos\n\nEXP 2: Volume",
+      "amps": [
+        "Agoura_AmpUSDripBass"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x15USDripmanWithPan"
+      ],
+      "fx": [
+        "HD2_WahUKWah846Mono",
+        "HD2_DistHeirApparentMono",
+        "HD2_DistHedgehogD9Mono",
+        "HD2_DistAlpacaRougeMono",
+        "HD2_VolPanVolMono",
+        "HD2_TremoloHarmonicStereo",
+        "HD2_DelayAdriaticDelayStereo",
+        "HD2_ReverbHallStereo",
+        "HD2_DelaySimpleDelayMono"
+      ],
+      "fxCount": 9,
+      "tags": [
+        "bass",
+        "delay",
+        "lush-reverb",
+        "tremolo",
+        "wah"
+      ]
+    },
+    {
+      "file": "Johnny Salami.hsp",
+      "name": "Johnny Salami",
+      "info": "Instrument: Highway One Stratocaster (all pickup combos)\nPlayback System: Studio monitors, headphones\n\nSnap 1: SuperClean\nSnap 2: Crunch\nSnap 3: Crunchier\nSnap 4: Crunchiest\nSnap 5: Tron\nSnap 6: Solo\nSnap 7: Chorus\nSnap 8: ChorusSolo",
+      "amps": [
+        "Agoura_AmpUSDoubleBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x12DoubleC12NWithPan"
+      ],
+      "fx": [
+        "HD2_VolPanVolMono",
+        "HD2_DistKinkyBoostMono",
+        "HX2_FilterAutoFilterMono",
+        "HD2_DistHeirApparentMono",
+        "HD2_DistScream808Mono",
+        "HD2_DistMinotaurMono",
+        "HD2_ChorusMono",
+        "HD2_DelayDuckedDelayMono",
+        "VIC_ReverbRotatingMono",
+        "HD2_VolPanGainMono"
+      ],
+      "fxCount": 10,
+      "tags": [
+        "blues",
+        "chorus",
+        "clean",
+        "country",
+        "fender",
+        "klon",
+        "tubescreamer"
+      ]
+    },
+    {
+      "file": "Knife Fight.hsp",
+      "name": "Knife Fight",
+      "info": "Inspired by Cairo Knife Fight\n\nThis preset is best experienced in stereo.\n\nInstrument: SCB6 (Aftermath bridge pickups)\nPlayback System: Studio monitors, headphones\n\nSnap 1: All In! - Guitar & bass path with \"minimal\" processing\nSnap 2: GuitarOnly - Guitar path only\nSnap 3: Bass Only - Bass path only\nSnap 4: Fuzz'd - Fuzz added to bass path\nSnap 5: Swirly - Choruses added to both paths\nSnap 6: Such Dirt - (More) distortion added to guitar path\nSnap 7: Final Form - Octave up blended into guitar path\nSnap 8: No Delay - Same as Snap 7 with delay bypassed",
+      "amps": [
+        "Agoura_AmpAmpegSVT",
+        "Agoura_AmpSolid100"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_8x10SVTAVWithPan",
+        "HD2_CabMicIr_4x12SoloLeadEMWithPan"
+      ],
+      "fx": [
+        "HD2_PitchSimplePitchMono",
+        "HD2_DistIndustrialFuzzMono",
+        "HD2_VolPanVolMono",
+        "HD2_ChorusAmpegLiquifierStereo",
+        "VIC_ReverbDynAmbienceStereo",
+        "HD2_PitchSimplePitchMono",
+        "HD2_DistDeezOneModMono",
+        "HD2_VolPanVolMono",
+        "HD2_ChorusTrinityChorusStereo",
+        "HD2_DelayModChorusEchoStereo"
+      ],
+      "fxCount": 10,
+      "tags": [
+        "bass",
+        "chorus",
+        "clean",
+        "fuzz",
+        "metal",
+        "neutral",
+        "pitch-shift"
+      ]
+    },
+    {
+      "file": "Leopard Printz.hsp",
+      "name": "Leopard Printz",
+      "info": "Get that fun ‘80s rhythm vibe! Go for the sitcom lead on Snapshot 4 (neck pickup).\n\nInstrument: American Ultra Tele (neck pickup and palm muted)\nPlayback System: Studio monitors\n\nSnap 1: Palm '86\nSnap 2: Join me\nSnap 3: Boostah\nSnap 4: SitcomLead",
+      "amps": [
+        "Agoura_AmpUSPrincess76",
+        "HD2_AmpUSSuperVib",
+        "Agoura_AmpEssexTB30CC"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x10USPrincessWithPan",
+        "HD2_CabMicIr_4x10USSuperWithPan",
+        "HD2_CabMicIr_2x12SilverBellWithPan"
+      ],
+      "fx": [
+        "HD2_DistKinkyBoostMono",
+        "HD2_ChorusTrinityChorusStereo",
+        "HX2_CompressorRedSqueezeStereo",
+        "HD2_DistDhyanaDriveMono",
+        "HD2_DelayDoubleDoubleMono",
+        "HD2_VolPanVolStereo",
+        "HD2_DelayElephantManStereo",
+        "HD2_ReverbGanymedeStereo"
+      ],
+      "fxCount": 8,
+      "tags": [
+        "blues",
+        "british",
+        "chime",
+        "chorus",
+        "clean",
+        "compression",
+        "fender",
+        "small-amp",
+        "tape-delay",
+        "vibrato",
+        "vintage"
+      ]
+    },
+    {
+      "file": "Luxe in Tenebris.hsp",
+      "name": "Luxe in Tenebris",
+      "info": "Instrument: Strat or Tele\nPlayback System: Studio monitors\n\nSnap 1: Rhythm – Slightly breaking up dry\nSnap 2: Big Lead – Take a solo (Heir Apparent for more)\nSnap 3: Cleanish – Just slightly breaking wet\nSnap 4: Clean – Ok, this is actually clean",
+      "amps": [
+        "Agoura_AmpUSLuxeBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12CaliV30WithPan"
+      ],
+      "fx": [
+        "HD2_DistHeirApparentMono",
+        "VIC_DelayPolySustain",
+        "HD2_DelayDualDelayStereo",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 4,
+      "tags": [
+        "blues",
+        "clean",
+        "country",
+        "fender",
+        "lush-reverb"
+      ]
+    },
+    {
+      "file": "Mandarin Fuzz.hsp",
+      "name": "Mandarin Fuzz",
+      "info": "Instrument: Yamaha Revstar\nPlayback System: Studio Monitors\n\nSnap 1: Main Rhythm Tone\nSnap 2: Chug Tone with Treble Booster\nSnap 3: Lead Tone with Octave Fuzz and Echo\nSnap 4: Trip2Space w/ Phaser, Echo, & Verb\n\nExp 1: Delay Time\nExp 2: Volume (before amp)\n\n",
+      "amps": [
+        "Agoura_AmpMandarinRockerMk3"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x12MandarinWithPan"
+      ],
+      "fx": [
+        "HD2_DistTycoctaviaFuzzMono",
+        "HD2_DistDerangedMasterMono",
+        "HD2_PhaserScriptModPhaseMono",
+        "HD2_VolPanVolMono",
+        "HD2_DelayCosmosEchoStereo",
+        "HD2_ReverbGanymedeStereo",
+        "VIC_ReverbDynAmbienceStereo"
+      ],
+      "fxCount": 7,
+      "tags": [
+        "ambient",
+        "fuzz",
+        "fuzz-friendly",
+        "orange",
+        "phaser",
+        "pitch-shift",
+        "stoner-rock"
+      ]
+    },
+    {
+      "file": "Matchstick.hsp",
+      "name": "Matchstick",
+      "info": "Instrument: Tele (bridge pickup)\nPlayback System: Studio monitors\n\nSnap 1: BASE - Your delicious C30 base tone\nSnap 2: WOOSHHHH - Adding some dirt and a wooshy delay\nSnap 3: AQUATIC - Imagine you're playing guitar underwater\nSnap 4: TREM SLAP - Name speaks for itself\nSnap 5: SOLO - Adds Dist > Vermin and a long delay for solo tones\nSnap 6: AMBI - Clean and spacey\nSnap 7: -BEAR - For the moments you want to take away the bear\nSnap 8: ALL WETS - All wets are one cause if you haven't done that before you need to\n\nEXP 1: Wah\nEXP 2: Volume\nStomp A9: Switches Amp channel between Ch 1 and Jumped",
+      "amps": [
+        "Agoura_AmpMatchstick30"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x12MatchH30WithPan"
+      ],
+      "fx": [
+        "HX2_CompressorDeluxeCompMono",
+        "HD2_DistTeemahMono",
+        "HD2_DistVerminDistMono",
+        "HD2_WahThroatyMono",
+        "HD2_VibratoBubbleVibratoMono",
+        "HD2_VolPanVolStereo",
+        "HD2_TremoloHarmonicStereo",
+        "HD2_DelayElephantManStereo",
+        "HD2_DL4SweepEchoStereo",
+        "HD2_DelayTransistorTapeStereo",
+        "VIC_ReverbDynRoomStereo",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 12,
+      "tags": [
+        "boutique",
+        "british",
+        "chime",
+        "compression",
+        "jazz-friendly",
+        "lush-reverb",
+        "rat-distortion",
+        "tape-delay",
+        "tremolo",
+        "vibrato",
+        "wah"
+      ]
+    },
+    {
+      "file": "Modern Metal.hsp",
+      "name": "Modern Metal",
+      "info": "Instrument: Modern humbuckers, bridge pickup (distorted), neck pickup (clean)\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Rhythm - Tight metal rhythm tone\nSnap 2: Clean Wet - Wet and ambient clean tone\nSnap 3: Lead - Solo lead tone\nSnap 4: Crunchy - Mid gain crunch tone\nSnap 5: Octave - Rhythm tone with octave below\nSnap 6: Clean - Simple clean tone\n\nEXP 1: Wah\nEXP 2: Volume",
+      "amps": [
+        "Agoura_AmpEVPanamaRed",
+        "HD2_AmpJazzRivet120"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12CaliV30WithPan"
+      ],
+      "fx": [
+        "HD2_VolPanVolMono",
+        "HD2_PitchPitchWhamMono",
+        "HD2_WahThroatyMono",
+        "HX2_DM4TubeComp",
+        "HD2_DistScream808Mono",
+        "HD2_Chorus70sChorusStereo",
+        "HD2_DelaySimpleDelayStereo",
+        "VIC_ReverbRotatingStereo"
+      ],
+      "fxCount": 8,
+      "tags": [
+        "chorus",
+        "clean",
+        "compression",
+        "delay",
+        "high-gain",
+        "jazz",
+        "metal",
+        "modern",
+        "pitch-shift",
+        "tubescreamer",
+        "wah"
+      ]
+    },
+    {
+      "file": "Money No Object.hsp",
+      "name": "Money No Object",
+      "info": "If money was no object, you’d have an amp for cleans, an amp for dirt, and the best pedals money could buy.\n\nInstrument: Tele (bridge pickup)\nPlayback System: Studio monitors\n\nSnap 1: Luk Lead - Klon and Blue channel to sound like Luk\nSnap 2: Rhy Blue - Just the Blue channel\nSnap 3: Dly Riff - Hot and fast DMM\nSnap 4: Dirt Trem - Blue channel and choppy trem\nSnap 5: Spanky Cln - Using the Grammatico for insane cleans\nSnap 6: Mayer Ld - 808 and Klon, just like Mayer does it\nSnap 7: Ambi Cln - Clean, ambient\nSnap 8: Sailing - Chorus and cleans, just like Chris\n\nEXP 1: Wah\nEXP 2: Volume",
+      "amps": [
+        "Agoura_AmpGermanXtraBlue",
+        "HD2_AmpGSG100"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12UberV30WithPan"
+      ],
+      "fx": [
+        "HD2_WahChromeCustomMono",
+        "HD2_DistMinotaurMono",
+        "HD2_DistScream808Mono",
+        "HD2_TremoloTremoloMono",
+        "HD2_VolPanVolMono",
+        "HD2_DelayElephantManMono",
+        "HD2_Chorus70sChorusStereo",
+        "HD2_DelayDualDelayStereo",
+        "VIC_DynPlateStereo",
+        "VIC_ReverbRotatingStereo"
+      ],
+      "fxCount": 10,
+      "tags": [
+        "chorus",
+        "high-gain",
+        "klon",
+        "lush-reverb",
+        "metal",
+        "modern",
+        "tape-delay",
+        "tremolo",
+        "tubescreamer",
+        "wah"
+      ]
+    },
+    {
+      "file": "Nash Sesh.hsp",
+      "name": "Nash Sesh",
+      "info": "Instrument: Tele or Les Paul (all pickups)\nPlayback System: Studio headphones\n\nThis is a \"do it all\" recording session board inspired by the players on the scene in Nashville. Definitely a more modern country flare, but the classic stuff is there too!\n\nSnap 1: Dluxe Base - Cleanish starting tone with slap\nSnap 2: Ambient - The \"vibey intro\"\nSnap 3: Trem - The \"vibey verse\"\nSnap 4: Dlx Solo - Classic Rock-type solo\nSnap 5: Edgelay - Rhythmic delay they all love\nSnap 6: FuzzSolo - Fuzzy solo with slapback\nSnap 7: Dry Power - Realistically, you will be on this one most\nSnap 8: BrghtSolo - Bright solo to cut through and let it rip",
+      "amps": [
+        "Agoura_AmpUSLuxeBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x12OpenCreamWithPan"
+      ],
+      "fx": [
+        "HD2_WahThroatyMono",
+        "HD2_DistPocketFuzzMono",
+        "HD2_DistKinkyBoostMono",
+        "HD2_DistPrizeDriveMono",
+        "HD2_DistHeirApparentMono",
+        "HD2_DistHeirApparentMono",
+        "HD2_CaliQMono",
+        "HD2_TremoloTremoloMono",
+        "HD2_DL4TapeEchoStereo",
+        "HD2_DelayElephantManMono",
+        "HX2_EQParametricMono",
+        "HD2_VolPanVolMono",
+        "HD2_MM4Dimension",
+        "HD2_VibratoBubbleVibratoStereo",
+        "HD2_DL4AnalogDelayStereoMod",
+        "HD2_ReverbHxSpringStereo",
+        "HD2_ReverbPlateStereo"
+      ],
+      "fxCount": 17,
+      "tags": [
+        "blues",
+        "clean",
+        "country",
+        "fender",
+        "fuzz",
+        "lush-reverb",
+        "rat-distortion",
+        "spring-reverb",
+        "tape-delay",
+        "tremolo",
+        "vibrato",
+        "wah"
+      ]
+    },
+    {
+      "file": "Nashville.hsp",
+      "name": "Nashville",
+      "info": "Instrument: Highway One Tele w/ SD Noiseless P90s (bridge pickup)\nPlayback System: Studio monitors, headphones\n\nSnap 1: Clean - A mix of Essex TB30CC Top Boost and US Double Black with Reverb\nSnap 2: Crunch - Ratatouille with light overdrive\nSnap 3: Prize - Prize Drive with light overdrive\nSnap 4: Crunchier - Ratatouille and Prize Drive together for some good gain\nSnap 5: Delay Funs - Prize Drive with Transistor Tape Delay 1/8 with long feedback\nSnap 6: Harm Trem - Clean with Harmonic Tremolo (almost like a univibe)\nSnap 7: Leslie - Rotary set to slow\nSnap 8: Slap - Clean with Tape Echo slapback delay\n\nEXP 2: Volume",
+      "amps": [
+        "Agoura_AmpEssexTB30CC",
+        "Agoura_AmpUSDoubleBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x12SilverBellWithPan",
+        "HD2_CabMicIr_2x12DoubleC12NWithPan"
+      ],
+      "fx": [
+        "HD2_DistKinkyBoostMono",
+        "HD2_DistRatatouilleDistMono",
+        "HD2_DistPrizeDriveMono",
+        "HD2_DistHeirApparentMono",
+        "HD2_EQGraphic10BandMono",
+        "HD2_DelayTransistorTapeMono",
+        "HD2_DL4TapeEchoStereo",
+        "HD2_TremoloHarmonicMono",
+        "HD2_Rotary145RotaryStereo",
+        "VIC_DynPlateMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 11,
+      "tags": [
+        "blues",
+        "british",
+        "chime",
+        "clean",
+        "country",
+        "fender",
+        "leslie",
+        "lush-reverb",
+        "rat-distortion",
+        "tape-delay",
+        "tremolo",
+        "vintage"
+      ]
+    },
+    {
+      "file": "Oldano.hsp",
+      "name": "Oldano",
+      "info": "Instrument: Tele, Les Paul, or Strat\nPlayback System: Studio headphones\n\nThis is a \"head start\" preset for the SLO fans. Use it as a base and build your own rig!\n\nSnap 1: FatClean - Cleanish starting tone\nSnap 2: Crunchy - More gain\nSnap 3: MoreGain - Palm mute that!\nSnap 4: LotsGain - Most gain on tap!",
+      "amps": [
+        "Agoura_AmpSolid100"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12Greenback30WithPan"
+      ],
+      "fx": [
+        "HD2_DistMinotaurMono",
+        "HD2_VolPanVolMono",
+        "HD2_ChorusTrinityChorusStereo",
+        "HD2_DL4AnalogDelayStereoMod",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 5,
+      "tags": [
+        "chorus",
+        "clean",
+        "klon",
+        "lush-reverb",
+        "neutral"
+      ]
+    },
+    {
+      "file": "Orange Fall.hsp",
+      "name": "Orange Fall",
+      "info": "Instrument: Dustin Kensrue Artist Series Music Man Stingray (neck pickup)\nPlayback System: Studio monitors, headphones\n\nSnap 1: Swirl\nSnap 2: Scatter\nSnap 2: Pile\nSnap 4: Snap",
+      "amps": [
+        "Agoura_AmpUSLuxeBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x12USDeluxeWithPan"
+      ],
+      "fx": [
+        "HD2_VolPanVolMono",
+        "HD2_DistPocketFuzzMono",
+        "HX2_CompressorKinkyCompMono",
+        "HD2_DistMinotaurMono",
+        "HD2_RingModulatorPitchRingModStereo",
+        "HD2_DelayPingPongStereo",
+        "VIC_DynPlateStereo",
+        "VIC_DynPlateStereo",
+        "HD2_Tremolo60sBiasTremStereo"
+      ],
+      "fxCount": 9,
+      "tags": [
+        "blues",
+        "clean",
+        "compression",
+        "country",
+        "delay",
+        "fender",
+        "fuzz",
+        "klon",
+        "lush-reverb",
+        "pitch-shift",
+        "tremolo"
+      ]
+    },
+    {
+      "file": "Pescatarian.hsp",
+      "name": "Pescatarian",
+      "info": "Instrument: Pro II TA-62 (335 Style) (neck humbucker & bridge humbucker, respectively)\nPlayback System: Studio monitors, headphones\n\nSnap 1: Clean - Clean amp, comp, reverb\nSnap 2: Less - Scream 808\nSnap 3: More - Both Scream 808s\nSnap 4: Divided - Both Scream 808s with Minotaur for feedback and sustain\nSnap 5: Vibe - Vibe with Scream 808 and Minotaur\nSnap 6: Reverse - Reverse Delay for the weirdness\nSnap 7: Leslie - Rotary set to slow\nSnap 8: Tron - AutoFilter for the womp womp\n\nStomp A1: Simple Delay 1/4\nStomp A2: Vintage Digital 1/8 Dotted\nStomp A3: Vintage Digital 1/8 Triplet\nStomp A4: Reverse Delay 1/4 100% Mix\nStomp A5: Dynamic Room Reverb (light)\nStomp A7: Pitch Wham\nStomp A8: Growler (very fun)\nStomp A9: Autofilter\nStomp A10: Synth O Matic\nStomp A11: Ubiquitous Vibe (light and slow)\n\nEXP 1: Pitch Wham\nEXP 2: Volume",
+      "amps": [
+        "HD2_AmpDerailedIngrid"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12CaliV30WithPan"
+      ],
+      "fx": [
+        "HD2_PitchPitchWhamMono",
+        "HD2_FM4Growler",
+        "HX2_FilterAutoFilterMono",
+        "HD2_FM4SynthOMatic",
+        "HD2_PhaserUbiquitousVibeMono",
+        "HX2_CompressorRedSqueezeMono",
+        "HD2_DistScream808Mono",
+        "HD2_DistScream808Mono",
+        "HD2_DistMinotaurMono",
+        "HD2_DelaySimpleDelayMono",
+        "HD2_DelayVintageDigitalMonoV2",
+        "HD2_DelayVintageDigitalMonoV2",
+        "HD2_DelayReverseDelayMono",
+        "HD2_Rotary145RotaryStereo",
+        "VIC_ReverbDynRoomMono",
+        "HD2_VolPanVolMono"
+      ],
+      "fxCount": 16,
+      "tags": [
+        "compression",
+        "delay",
+        "high-gain",
+        "klon",
+        "leslie",
+        "metal",
+        "phaser",
+        "pitch-shift",
+        "reverse",
+        "rock",
+        "synth",
+        "tubescreamer"
+      ]
+    },
+    {
+      "file": "Pink Dream.hsp",
+      "name": "Pink Dream",
+      "info": "Instrument: Dustin Kensrue Artist Series Music Man Stingray (neck pickup)\nPlayback System: Studio monitors, headphones\n\nSnap 1: Ethereal\nSnap 2: Lush\nSnap 3: Lucid\nSnap 4: Waking",
+      "amps": [
+        "Agoura_AmpUSLuxeBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x12USDeluxeWithPan"
+      ],
+      "fx": [
+        "HD2_WahUKWah846Mono",
+        "HD2_VolPanVolMono",
+        "HD2_DistMinotaurMono",
+        "HD2_DelayElephantManMono",
+        "HD2_ReverbPlateauxStereo",
+        "HD2_TremoloTremoloStereo",
+        "HD2_DelayMultitap6Stereo",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 8,
+      "tags": [
+        "ambient",
+        "blues",
+        "clean",
+        "country",
+        "fender",
+        "klon",
+        "lush-reverb",
+        "tape-delay",
+        "tremolo",
+        "wah"
+      ]
+    },
+    {
+      "file": "Plexiglass.hsp",
+      "name": "Plexiglass",
+      "info": "Instrument: Strat or Tele\nPlayback System: Studio monitors\n\nSnap 1: Rhythm – Crunchy tone\nSnap 2: Big Lead – Take a solo (bridge pickup)\nSnap 3: Cleanish – Breaking up wet\nSnap 4: Clean – Bit cleaner",
+      "amps": [
+        "Agoura_AmpBritPlexi"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12CaliV30WithPan"
+      ],
+      "fx": [
+        "HD2_DistHeirApparentMono",
+        "VIC_DelayPolySustain",
+        "HD2_DelayDualDelayStereo",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 4,
+      "tags": [
+        "british",
+        "classic-rock",
+        "lush-reverb",
+        "vintage"
+      ]
+    },
+    {
+      "file": "Prism Flowers.hsp",
+      "name": "Prism Flowers",
+      "info": "This preset is created for a majority of the clean sounds used in Fellsilent, Monuments, and Flux Conduct.\n\nInstrument: C1-EX with Colossus bridge pickup\nTuning: DADGAD\nType: Clean and Acoustic\n\nSnap 1: Piezo Out\nSnap 2: SoloChords - For solo acoustic-sounding chord sections (such as The Cimmerian)\nSnap 3: Dense Mix - For acoustic chords on the sides in dense distorted mixes (such as The Cimmerian)\nSnap 4: Chorus - Added chorus effect because Genesis\nSnap 5: Hi Octave - Added higher octave for shimmer\nSnap 6: Lo Octave - Added lower octave for thickness\nSnap 7: Lo-Fi - Hi cut for less in-your-face clean parts",
+      "amps": [],
+      "cabs": [],
+      "fx": [
+        "L6SPB_PolyDowntune",
+        "L6SPB_AcousGtrSimMono",
+        "HD2_ChorusPlastiChorusMono",
+        "HX2_GateNoiseGateMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_EQGraphic10BandMono",
+        "HX2_EQParametricMono",
+        "HD2_DelayCosmosEchoMono",
+        "HD2_ReverbHallStereo",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolStereo"
+      ],
+      "fxCount": 11,
+      "tags": [
+        "ambient",
+        "chorus",
+        "compression",
+        "lush-reverb"
+      ]
+    },
+    {
+      "file": "Purple Nurple.hsp",
+      "name": "Purple Nurple",
+      "info": "Instrument: Les Paul Standard 60's\nPlayback System: Studio monitors, FRFR, headphones\n\nSnap 1: Push\nSnap 2: OD 1 - Default for clip\nSnap 3: OD 2\nSnap 4: Lead w/Dly",
+      "amps": [
+        "Agoura_AmpRevvCh3Purple"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12Greenback25WithPan"
+      ],
+      "fx": [
+        "HD2_WahFasselMono",
+        "HX2_EQParametricStereo",
+        "HD2_DelayTransistorTapeStereo",
+        "VIC_ReverbDynAmbienceStereo",
+        "HX2_CompressorLAStudioCompStereo",
+        "HD2_VolPanVolStereo"
+      ],
+      "fxCount": 6,
+      "tags": [
+        "compression",
+        "crunch",
+        "fuzz",
+        "high-gain",
+        "modern-rock",
+        "tape-delay",
+        "wah"
+      ]
+    },
+    {
+      "file": "Quiet Time.hsp",
+      "name": "Quiet Time",
+      "info": "Instrument: Strat or Tele\nPlayback System: Studio monitors\n\nSnap 1: Rhythm – Slightly breaking up dry\nSnap 2: Big Lead – Take a solo (Heir Apparent for more)\nSnap 3: Cleanish – Just slightly breaking wet\nSnap 4: Clean – Actually clean",
+      "amps": [
+        "Agoura_AmpEssexTB30CC"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x12SilverBellWithPan"
+      ],
+      "fx": [
+        "HD2_DistHeirApparentMono",
+        "VIC_DelayPolySustain",
+        "HD2_DelayTransistorTapeStereo",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 4,
+      "tags": [
+        "british",
+        "chime",
+        "lush-reverb",
+        "tape-delay",
+        "vintage"
+      ]
+    },
+    {
+      "file": "Red Wreck.hsp",
+      "name": "Red Wreck",
+      "info": "Instrument: Dustin Kensrue Artist Series Music Man Stingray (bridge pickup)\nPlayback System: Studio monitors, headphones\n\nSnap 1: Crush\nSnap 2: Crunch\nSnap 3: Creep\nSnap 4: Chop",
+      "amps": [
+        "Agoura_AmpUSLuxeBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x12USDeluxeWithPan"
+      ],
+      "fx": [
+        "HD2_WahFasselMono",
+        "HD2_VolPanVolMono",
+        "HD2_DistVitalDistMono",
+        "HD2_DistMinotaurMono",
+        "HD2_DelayReverseDelayStereo",
+        "HD2_TremoloTremoloStereo",
+        "HD2_ReverbSearchlightsStereo"
+      ],
+      "fxCount": 7,
+      "tags": [
+        "ambient",
+        "blues",
+        "clean",
+        "country",
+        "fender",
+        "klon",
+        "reverse",
+        "tremolo",
+        "wah"
+      ]
+    },
+    {
+      "file": "Reflection.hsp",
+      "name": "Reflection",
+      "info": "This preset uses Double Take to sound like more than one guitar player. Use of fuzz and sub-octave effects here as well. Noise gate between amp and cab is sidechained from the input.\n\nInstrument: C1-EX with Colossus bridge pickup\nTuning: DADGAD\nType: Rhythm/Destroy\n\nSnap 1: Two of Me - Same amp and cab but with different mics on the cabs between the two sides to make it larger \nSnap 2: No Boost - Same as above but without Graphic EQ and boost\nSnap 3: Fuzz - Added fuzz, works best with single notes\nSnap 4: Power - Added -5 pitch so every note sounds like a power chord with fuzz\nSnap 5: End Them - Same as Power with pitch at -12, added boost\nSnap 6: End Me - Pitch at -12 with no Graphic EQ or boost, works great with single notes\nSnap 7: Power Dist - Everything on but back to the -5 pitch, works well with single notes",
+      "amps": [
+        "Agoura_AmpEVPanamaRed",
+        "Agoura_AmpEVPanamaBlue"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12CaliV30WithPan",
+        "HD2_CabMicIr_4x12CaliV30WithPan"
+      ],
+      "fx": [
+        "HD2_PitchSimplePitchMono",
+        "HD2_EQGraphic10BandMono",
+        "HD2_DistBallisticFuzzMono",
+        "HD2_DistScream808Mono",
+        "HX2_GateHardGateMono",
+        "HX2_EQParametricMono",
+        "HD2_VolPanVolStereo",
+        "HD2_DelayDoubleDoubleMono",
+        "HD2_PitchSimplePitchMono",
+        "HD2_EQGraphic10BandMono",
+        "HD2_DistBallisticFuzzMono",
+        "HD2_DistScream808Mono",
+        "HX2_GateHardGateMono",
+        "HX2_EQParametricMono",
+        "HD2_VolPanVolStereo"
+      ],
+      "fxCount": 15,
+      "tags": [
+        "ambient",
+        "fuzz",
+        "high-gain",
+        "metal",
+        "modern",
+        "pitch-shift",
+        "rock",
+        "tubescreamer"
+      ]
+    },
+    {
+      "file": "Reigning Champ.hsp",
+      "name": "Reigning Champ",
+      "info": "Instrument: Strat or Tele\nPlayback System: Studio monitors\n\nSnap 1: Rhythm – Bone dry Champ\nSnap 2: Big Lead – Boosted Champ\nSnap 3: Cleanish – Just a hair\nSnap 4: Clean – Clean",
+      "amps": [
+        "Agoura_AmpUS5WTweed"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_1x8SmallTweedWithPan"
+      ],
+      "fx": [
+        "HD2_DistHeirApparentMono",
+        "VIC_DelayPolySustain",
+        "HD2_DelayBucketBrigadeMono",
+        "VIC_DynPlateStereo"
+      ],
+      "fxCount": 4,
+      "tags": [
+        "blues",
+        "fender",
+        "lush-reverb",
+        "tape-delay",
+        "tweed",
+        "vintage"
+      ]
+    },
+    {
+      "file": "Revv Redemption.hsp",
+      "name": "Revv Redemption",
+      "info": "Instrument: Custom 24\nPlayback System: Studio monitors, FRFR, headphones\n\nSnap 1: Push\nSnap 2: OD 1 - Default for clip\nSnap 3: OD 2\nSnap 4: Lead w/Dly",
+      "amps": [
+        "Agoura_AmpRevvCh4Red"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12CaliV30WithPan"
+      ],
+      "fx": [
+        "HD2_WahFasselMono",
+        "HX2_EQParametricStereo",
+        "HD2_DelayTransistorTapeStereo",
+        "VIC_ReverbDynAmbienceStereo",
+        "HX2_CompressorLAStudioCompStereo",
+        "HD2_VolPanVolStereo"
+      ],
+      "fxCount": 6,
+      "tags": [
+        "compression",
+        "high-gain",
+        "metal",
+        "modern",
+        "tape-delay",
+        "wah"
+      ]
+    },
+    {
+      "file": "Revvolution.hsp",
+      "name": "Revvolution",
+      "info": "Instrument: Humbuckers, bridge pickup (rhythm), neck or bridge (crunch and lead)\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Purple Rtm - Tight heavy rhythm tone\nSnap 2: Purple Ld - Thick and articulate lead tone\nSnap 3: Purple Crn - Crunchy tone\nSnap 4: Red Rtm - Fat heavy rhythm tone\nSnap 5: Red Lead - Fat soaring lead tone\nSnap 6: Red Crunch - Crunchy tone\n\nEXP 1: Wah\nEXP 2: Volume",
+      "amps": [
+        "Agoura_AmpRevvCh3Purple",
+        "Agoura_AmpRevvCh4Red"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12CaliV30WithPan"
+      ],
+      "fx": [
+        "HD2_VolPanVolMono",
+        "HD2_WahWeeperMono",
+        "HD2_DistScream808Mono",
+        "HD2_PhaserScriptModPhaseMono",
+        "HD2_DelaySimpleDelayStereo",
+        "VIC_ReverbDynRoomStereo"
+      ],
+      "fxCount": 6,
+      "tags": [
+        "crunch",
+        "delay",
+        "high-gain",
+        "metal",
+        "modern",
+        "modern-rock",
+        "phaser",
+        "tubescreamer",
+        "wah"
+      ]
+    },
+    {
+      "file": "Rhythm Concepts.hsp",
+      "name": "Rhythm Concepts",
+      "info": "This preset was created as a concept, to let you hear the subtle (but in a mix, massive) differences between fine tuning a guitar sound for 6-7-8 string tunings using the same amp. \n\nMost amplifier builders have fine-tuned their amps using Standard Guitar Tuning. When we approach with lower tuned instruments we need to dial the frequencies closer to what the input of an amp is expecting. We’re after the 'timbre' of lower tuned instruments - not the mud.\n\nFor ease of use, I used the Poly Capo so you can hear the differences when using one guitar. I used a guitar in DADGAD tuning; clear Poly Capo to hear the differences in your different tunings. \n\nInstrument: C1-EX with Colossus bridge pickup\nType: Rhythm\n\nSnap 1: D Tuning\nSnap 2: C# Tuning\nSnap 3: C Tuning - Pre-EQ added as we start getting ‘mud’ around the 100-250hz region, gain lowered slightly on amp\nSnap 4: Bb Tuning - 100-250hz cut a bit more, gain added to Pre-EQ, a bit less gain, EQ moves with amp for more 'cut.' We start staging the gain from this tuning onward, adding more volume from the pedals and reducing the gain on the amp for more clarity and transient attack\nSnap 5: Ab Tuning - Same as Bb tuning with some subtle changes\nSnap 6: F Tuning - Tuned for 8-string guitars\nSnap 7: Eb Tuning - Lower 8-string tuning\nSnap 8: Octaves - Blended in lower octave for filth",
+      "amps": [
+        "Agoura_AmpEVPanamaBlue"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12CaliV30WithPan"
+      ],
+      "fx": [
+        "L6SPB_PolyDowntune",
+        "HD2_EQGraphic10BandMono",
+        "HD2_DistCompulsiveDriveMono",
+        "HX2_GateHardGateMono",
+        "HX2_EQParametricMono",
+        "HX2_EQParametricMono",
+        "HX2_CompressorLAStudioCompMono",
+        "HD2_VolPanVolStereo"
+      ],
+      "fxCount": 8,
+      "tags": [
+        "compression",
+        "high-gain",
+        "rock"
+      ]
+    },
+    {
+      "file": "Slow Dano.hsp",
+      "name": "Slow Dano",
+      "info": "Contains ALL three Solo Lead amps along with a Poly Capo block which can be activated for drop\ntuning (preset default half-step down).\n\nInstrument: ES-335\nPlayback System: Studio monitors, FRFR, headphones\n\nSnap 1: Clean\nSnap 2: Push - Default for clip\nSnap 3: OD\nSnap 4: Lead w/Dly",
+      "amps": [
+        "HD2_AmpSoloLeadClean",
+        "HD2_AmpSoloLeadCrunch",
+        "HD2_AmpSoloLeadOD"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x12MandarinWithPan"
+      ],
+      "fx": [
+        "HD2_WahTeardrop310Mono",
+        "L6SPB_PolyDowntune",
+        "HX2_EQParametricStereo",
+        "HD2_DelayTransistorTapeStereo",
+        "VIC_ReverbDynAmbienceMono",
+        "HX2_CompressorLAStudioCompStereo",
+        "HD2_VolPanVolStereo"
+      ],
+      "fxCount": 7,
+      "tags": [
+        "blues",
+        "clean",
+        "compression",
+        "studio",
+        "tape-delay",
+        "wah"
+      ]
+    },
+    {
+      "file": "Smells Bells.hsp",
+      "name": "Smells Bells",
+      "info": "Instrument: SG\nPlayback System: Studio monitors, FRFR, headphones\n\nSnap 1: Push 1\nSnap 2: Push 2 - Default for clip\nSnap 3: OD\nSnap 4: Lead w/Dly",
+      "amps": [
+        "Agoura_AmpBritPlexi"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12Greenback30WithPan"
+      ],
+      "fx": [
+        "HD2_WahUKWah846Mono",
+        "HX2_EQParametricStereo",
+        "HD2_DelayTransistorTapeStereo",
+        "VIC_ReverbDynAmbienceStereo",
+        "HX2_CompressorLAStudioCompStereo",
+        "HD2_VolPanVolStereo"
+      ],
+      "fxCount": 6,
+      "tags": [
+        "ambient",
+        "british",
+        "classic-rock",
+        "compression",
+        "tape-delay",
+        "vintage",
+        "wah"
+      ]
+    },
+    {
+      "file": "Space Cadet.hsp",
+      "name": "Space Cadet",
+      "info": "Let the Tesselator take you to new heights. All trails are on.\n\nInstrument: American Ultra Tele, neck pickup for Snapshots 2 and 3, the rest is up to you!\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Sustains\nSnap 2: Bitey\nSnap 3: Lead\nSnap 4: Tri Delay\nSnap 5: Bloomin",
+      "amps": [
+        "Agoura_AmpEssexTB30CC"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x12SilverBellWithPan"
+      ],
+      "fx": [
+        "HD2_DistKinkyBoostMono",
+        "HD2_DistMinotaurMono",
+        "HD2_DelayVintageDigitalStereoV2",
+        "VIC_DelayStutterEditStereo",
+        "VIC_DynPlateStereo",
+        "HD2_VolPanVolStereo",
+        "HX2_CompressorRedSqueezeStereo",
+        "HD2_DelayDualDelayStereo",
+        "VIC_ReverbDynBloomStereo",
+        "HX2_CompressorLAStudioCompStereo",
+        "HD2_VolPanVolStereo",
+        "HD2_ReverbParticleStereo"
+      ],
+      "fxCount": 12,
+      "tags": [
+        "ambient",
+        "british",
+        "chime",
+        "compression",
+        "delay",
+        "klon",
+        "lush-reverb",
+        "vintage"
+      ]
+    },
+    {
+      "file": "Stadium Rock Rig.hsp",
+      "name": "Stadium Rock Rig",
+      "info": "Instrument: Les Paul - Bridge pickup (distorted), neck pickup (clean)\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Rhythm - Heavy rock rhythm\nSnap 2: Clean - Simple, all-purpose clean tone\nSnap 3: Crunch - Crunch tone\nSnap 4: Lead - Solo lead tone\nSnap 5: Rhythm Bst - Boosted rhythm tone\nSnap 6: Clean Wet - Wet and ambient clean tone\nSnap 7: Rhythm Mod - Rhythm with phaser pedal\n\nEXP 1: Wah\nEXP 2: Volume",
+      "amps": [
+        "Agoura_AmpSolid100"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12SoloLeadEMWithPan"
+      ],
+      "fx": [
+        "HD2_VolPanVolMono",
+        "HD2_WahThroatyMono",
+        "HD2_DistScream808Mono",
+        "HD2_PhaserScriptModPhaseMono",
+        "HD2_Chorus70sChorusStereo",
+        "HD2_DelaySimpleDelayStereo",
+        "VIC_ReverbDynRoomStereo"
+      ],
+      "fxCount": 7,
+      "tags": [
+        "chorus",
+        "clean",
+        "delay",
+        "neutral",
+        "phaser",
+        "rock",
+        "tubescreamer",
+        "wah"
+      ]
+    },
+    {
+      "file": "Studio Direct.hsp",
+      "name": "Studio Direct",
+      "info": "Direct tones don’t get enough love. These here seek to recreate some iconic and familiar amp-less tones and some different textures.\n\nInstrument: Tele (neck pickup)\nPlayback System: Studio monitors\n\nSnap 1: Play E9 - Chorus, compression, and a widener. Play an E9, you’ll know\nSnap 2: Clean Wide - Your base tone with a widener\nSnap 3: Gk.Mee - Drawing inspiration from Mk.gee with textures and direct tone\nSnap 4: Phone Tone - Everyone’s wanted to know how guitar sounds thru a phone\nSnap 5: CrystalCln - Spanky clean with wet effects \n\nEXP 2: Volume",
+      "amps": [
+        "HD2_PreampVintagePre"
+      ],
+      "cabs": [],
+      "fx": [
+        "HD2_DistMegaphoneMono",
+        "HD2_RetroReelStereo",
+        "HX2_CompressorDeluxeCompMono",
+        "HD2_VolPanVolMono",
+        "HD2_MM4Dimension",
+        "HD2_DelayPingPongStereo",
+        "VIC_ReverbDynRoomStereo",
+        "VIC_DynPlateStereo",
+        "HD2_DelaySimpleDelayMono"
+      ],
+      "fxCount": 9,
+      "tags": [
+        "clean",
+        "compression",
+        "delay",
+        "lush-reverb",
+        "studio"
+      ]
+    },
+    {
+      "file": "Sunday Tones.hsp",
+      "name": "Sunday Tones",
+      "info": "Instrument: Tele (bridge pickup)\nPlayback System: Studio monitors\n\nSnap 1: Sunday Ld\nSnap 2: Clean\nSnap 3: Drive\nSnap 4: Drive+\nSnap 5: Lead\nSnap 6: Ambi Cln\nSnap 7: Ambi Mod",
+      "amps": [
+        "Agoura_AmpEssexTB30CC",
+        "HD2_AmpMatchstickCh1"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x12SilverBellWithPan",
+        "HD2_CabMicIr_2x12MatchG25WithPan"
+      ],
+      "fx": [
+        "HX2_CompressorKinkyCompMono",
+        "L6SPB_PolyPitch",
+        "HD2_DistHeirApparentMono",
+        "HD2_DistTeemahMono",
+        "HD2_DistPrizeDriveMono",
+        "HD2_TremoloTremoloMono",
+        "HD2_VolPanVolMono",
+        "HD2_ChorusStereo",
+        "HD2_DelayTransistorTapeStereo",
+        "HD2_DelayVintageDigitalStereoV2",
+        "HD2_ReverbPlateStereo",
+        "HD2_ReverbGlitzStereo"
+      ],
+      "fxCount": 12,
+      "tags": [
+        "boutique",
+        "british",
+        "chime",
+        "chorus",
+        "compression",
+        "delay",
+        "jazz-friendly",
+        "lush-reverb",
+        "pitch-shift",
+        "tape-delay",
+        "tremolo",
+        "vintage"
+      ]
+    },
+    {
+      "file": "generated-test.hsp",
+      "name": "Twin Clean",
+      "info": "Warm Fender Twin clean tone with subtle optical compression for sweetness and a touch of '63 spring reverb for vintage ambience. A light Tube Screamer is available on snapshot 2 for breakup and lead boost on snapshot 3.",
+      "amps": [
+        "Agoura_AmpUSDoubleBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x10TweedDiamondWithPan"
+      ],
+      "fx": [
+        "HD2_CompressorLAStudioCompMono",
+        "HD2_DistScreamerMono",
+        "HD2_Reverb63SpringStereo"
+      ],
+      "fxCount": 3,
+      "tags": [
+        "blues",
+        "clean",
+        "compression",
+        "country",
+        "fender",
+        "spring-reverb",
+        "studio",
+        "tubescreamer"
+      ]
+    },
+    {
+      "file": "twin-v2.hsp",
+      "name": "Twin V2",
+      "info": "Warm Fender Twin clean platform with a Royer 121 on a 4x10 Tweed cab for smooth, vintage-leaning chime. LA Studio Comp evens out the dynamics, a Tube Screamer adds boost/lead push, and a '63 Spring Reverb provides classic Fender wash. Snapshots scale Drive and Master plus engage the Screamer for stacked lead.",
+      "amps": [
+        "Agoura_AmpUSDoubleBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x10TweedDiamondWithPan"
+      ],
+      "fx": [
+        "HD2_CompressorLAStudioCompMono",
+        "HD2_DistScreamerMono",
+        "HD2_Reverb63SpringStereo"
+      ],
+      "fxCount": 3,
+      "tags": [
+        "blues",
+        "clean",
+        "compression",
+        "country",
+        "fender",
+        "spring-reverb",
+        "tubescreamer"
+      ]
+    },
+    {
+      "file": "Unlikely Pair.hsp",
+      "name": "Unlikely Pair",
+      "info": "This preset utilizes two amps that might not be typically paired together: US Luxe Black and Solid 100. US Luxe Black handles the clean tones while Solid 100 handles the rhythm and lead tones. Stomp A9 toggles the two amps manually.\n\nInstrument: DGT semi-hollow (bridge pickup)\nPlayback System: Studio monitors, headphones\n\nSnap 1: Mod Drive - Rhythm tone with modulation (80's rhythm inspired)\nSnap 2: Slo Rhythm - Solid 100 amp with minimal effects\nSnap 3: Dot8thPush - Pushed rhythm tone with dotted 8th delay\nSnap 4: Solo - Solo/lead tone\nSnap 5: Clean Dlx - Clean tone with US Luxe Black amp\nSnap 6: Big Verb - Ambient cleans\nSnap 7: Retro Reel - Clean tone with Retro Reel modulation\nSnap 8: ShimrSwell - Big ambient swells with shimmer\n\nEXP Toe: Turns Pitch Wham on/off\nEXP 1: Pitch Wham Position and Mix",
+      "amps": [
+        "Agoura_AmpUSLuxeBlack",
+        "Agoura_AmpSolid100"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x12MatchH30WithPan"
+      ],
+      "fx": [
+        "HX2_CompressorDeluxeCompMono",
+        "HD2_PitchPitchWhamMono",
+        "HD2_DistKinkyBoostMono",
+        "HD2_DistScream808Mono",
+        "HD2_VolPanVolMono",
+        "HD2_CaliQStereo",
+        "HD2_MM4Dimension",
+        "HD2_RetroReelStereo",
+        "HD2_DL4AnalogDelayStereo",
+        "HD2_DelayVintageDigitalStereoV2",
+        "HD2_DelayDualDelayStereo",
+        "HD2_TremoloTremoloStereo",
+        "HD2_ReverbPlateStereo",
+        "VIC_ReverbRotatingStereo",
+        "VIC_ReverbShimmerStereo",
+        "HD2_VolPanGainStereo"
+      ],
+      "fxCount": 16,
+      "tags": [
+        "ambient",
+        "blues",
+        "clean",
+        "compression",
+        "country",
+        "delay",
+        "fender",
+        "lush-reverb",
+        "neutral",
+        "pitch-shift",
+        "tremolo",
+        "tubescreamer"
+      ]
+    },
+    {
+      "file": "US_UK Stereo.hsp",
+      "name": "US/UK Stereo",
+      "info": "This preset uses the Essex TB30CC and US Luxe Black models in a stereo configuration. All the effects are fed into the amps.\n\nInstrument: Tele (bridge pickup)\nPlayback System: Studio monitors, headphones\n\nSnap 1: Clean/EOB - Your base clean/edge-of-breakup tone\nSnap 2: Drive - Stage 1 overdrive (Heir Apparent)\nSnap 3: Drive + - Stage 2 overdrive (Prize Drive)\nSnap 4: Lead - Solo/lead tone\nSnap 5: Ambient - Big delays and reverbs\nSnap 6: Clean Trem - Clean tone with tremolo\nSnap 7: 80's Clean - Clean tone with mod and big verb\nSnap 8: Grease Ld - 80's-inspired lead tone with mod and big wet effects",
+      "amps": [
+        "Agoura_AmpEssexTB30CC",
+        "Agoura_AmpUSLuxeBlack"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x12BlueBellWithPan"
+      ],
+      "fx": [
+        "HX2_CompressorDeluxeCompMono",
+        "HD2_DistHeirApparentMono",
+        "HD2_DistPrizeDriveMono",
+        "HD2_DistCompulsiveDriveMono",
+        "HD2_VolPanVolMono",
+        "HD2_ChorusStereo",
+        "HD2_PitchDualPitchStereo",
+        "HD2_TremoloTremoloStereo",
+        "HD2_ReverbPlateStereo",
+        "VIC_ReverbRotatingStereo",
+        "HD2_DL4AnalogDelayStereo",
+        "HD2_DelayVintageDigitalStereoV2",
+        "HD2_DelayDualDelayStereo",
+        "HD2_VolPanGainStereo"
+      ],
+      "fxCount": 14,
+      "tags": [
+        "blues",
+        "british",
+        "chime",
+        "chorus",
+        "classic-rock",
+        "clean",
+        "compression",
+        "country",
+        "delay",
+        "fender",
+        "lush-reverb",
+        "pitch-shift",
+        "tremolo",
+        "vintage"
+      ]
+    },
+    {
+      "file": "template.hsp",
+      "name": "USER 1 (7)",
+      "info": "Instrument: Les Paul - Bridge pickup (distorted), neck pickup (clean)\nPlayback System: Studio monitors, FRFR\n\nSnap 1: Rhythm - Heavy rock rhythm\nSnap 2: Clean - Simple, all-purpose clean tone\nSnap 3: Crunch - Crunch tone\nSnap 4: Lead - Solo lead tone\nSnap 5: Rhythm Bst - Boosted rhythm tone\nSnap 6: Clean Wet - Wet and ambient clean tone\nSnap 7: Rhythm Mod - Rhythm with phaser pedal\n\nEXP 1: Wah\nEXP 2: Volume",
+      "amps": [
+        "Agoura_AmpSolid100"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_4x12SoloLeadEMWithPan"
+      ],
+      "fx": [],
+      "fxCount": 0,
+      "tags": [
+        "clean",
+        "neutral"
+      ]
+    },
+    {
+      "file": "Voxxy Shag.hsp",
+      "name": "Voxxy Shag",
+      "info": "Instrument: Tele, Les Paul, or Strat\nPlayback System: Studio headphones\n\nThis is a \"head start\" preset for the Vox fans. Use it as a base and build your own rig!\n\nSnap 1: Fat Clean - Cleanish starting tone\nSnap 2: Crunchy - More gain\nSnap 3: More Gain - Palm mute that!\nSnap 4: LotsGain - Most gain on tap!",
+      "amps": [
+        "Agoura_AmpEssexTB30CC"
+      ],
+      "cabs": [
+        "HD2_CabMicIr_2x12SilverBellWithPan"
+      ],
+      "fx": [
+        "HD2_VolPanVolMono",
+        "HD2_DistDerangedMasterMono",
+        "HD2_DistTeemahMono",
+        "HD2_Tremolo60sBiasTremMono",
+        "HD2_ReverbHxSpringMono",
+        "HX2_EQParametricMono"
+      ],
+      "fxCount": 6,
+      "tags": [
+        "british",
+        "chime",
+        "spring-reverb",
+        "tremolo",
+        "vintage"
+      ]
+    }
+  ]
+}

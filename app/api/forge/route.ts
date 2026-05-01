@@ -3,14 +3,16 @@ import Anthropic from "@anthropic-ai/sdk";
 import { HELIX_SYSTEM_PROMPT } from "@/lib/helix-knowledge";
 import { lookupSong, buildSectionSummaryForForge } from "@/lib/song-lookup";
 import { applyDecisions, PresetDecisions, SectionMeta } from "@/lib/preset-template";
+import { buildFewShotContext } from "@/lib/preset-library";
 
 const client = new Anthropic();
 
 // ── Prompts ────────────────────────────────────────────────────
 
-function buildDescribePrompt(description: string, presetName: string) {
+function buildDescribePrompt(description: string, presetName: string, fewShot?: string) {
+  const fewShotBlock = fewShot ? `\n${fewShot}\n` : "";
   return `Generate a Helix Stadium preset for this tone request.
-
+${fewShotBlock}
 TONE: "${description}"
 PRESET NAME: "${presetName}"
 
@@ -46,15 +48,17 @@ function buildCoverSongPrompt(
   songTitle: string,
   artist: string,
   notes: string,
-  structureContext?: string
+  structureContext?: string,
+  fewShot?: string
 ) {
   const contextBlock = structureContext
     ? `\n${structureContext}\n\nUse the section data above directly — match your "sections" array timestamps to those boundaries. Calibrate snapshot drive/EQ/effects to the measured tonal character per section.\n`
     : `\nNo audio data was provided. Use your knowledge of the song to estimate section timestamps and tones.\n`;
+  const fewShotBlock = fewShot ? `\n${fewShot}\n` : "";
 
   return `You are building a Helix Stadium preset for a guitarist performing "${songTitle}" by ${artist} as a live cover.
 ${notes ? `\nGuitarist notes: "${notes}"` : ""}
-${contextBlock}
+${fewShotBlock}${contextBlock}
 SNAPSHOT CONSOLIDATION RULES — strict:
 - 8 snapshot slots; use NO MORE THAN 6. Leave at least 2 null.
 - Only create a new snapshot when the guitar TONE actually changes.
@@ -156,17 +160,25 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      const coverQuery = `${songTitle} ${artist} ${notes ?? ""}`;
+      const fewShot = buildFewShotContext(coverQuery, 2);
       userPrompt = buildCoverSongPrompt(
         songTitle.trim(),
         artist.trim(),
         notes?.trim() || "",
-        structureContext
+        structureContext,
+        fewShot ?? undefined
       );
     } else {
       if (!description?.trim()) {
         return NextResponse.json({ error: "Description is required" }, { status: 400 });
       }
-      userPrompt = buildDescribePrompt(description.trim(), presetName?.trim() || "HelixForge Preset");
+      const fewShot = buildFewShotContext(description, 2);
+      userPrompt = buildDescribePrompt(
+        description.trim(),
+        presetName?.trim() || "HelixForge Preset",
+        fewShot ?? undefined
+      );
     }
 
     const message = await client.messages.create({
