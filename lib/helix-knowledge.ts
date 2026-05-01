@@ -355,6 +355,59 @@ AGOURA AMP PARAMS (US Double Black / Fender Twin example):
   ZPrePost    0-1    Z (impedance) pre/post
 
 ================================================================
+AMP MODEL CHARACTERISTICS — drive sweet spots per amp
+================================================================
+
+Use these as your starting point for "Drive" values. Each amp has a different
+gain structure — Drive 0.5 on a Twin is barely breaking up, but Drive 0.5 on
+a JCM800 is full lead saturation. Pick from the right column for the snapshot
+you're building.
+
+                              CLEAN     EDGE OF       LEAD/FULL
+                              (sparkle) BREAKUP       SATURATION
+  --------------------------------------------------------------
+  US Double Black (Twin)      0.20-0.32 0.55-0.70     0.85-1.0
+  US Deluxe Black             0.15-0.30 0.40-0.55     0.70-0.85
+  US Prince Black (Princeton) 0.10-0.25 0.30-0.45     0.55-0.75
+  Brit JM45 (JTM45)           0.15-0.30 0.45-0.60     0.75-0.90
+  Brit Plexi Lead (Super Lead)0.20-0.35 0.45-0.55     0.65-0.85
+  Brit Plexi Bass             0.15-0.30 0.40-0.50     0.60-0.80
+  Brit Bluesbreaker           0.20-0.35 0.40-0.55     0.65-0.80
+  Brit JM800 (JCM800)         0.10-0.20 0.30-0.45     0.60-0.85   ← high gain
+  Brit Class5 (AC15)          0.20-0.35 0.45-0.60     0.70-0.85
+  Brit Class30 (AC30 Top Boost)0.25-0.40 0.50-0.65    0.75-0.90
+  Matchless DC30              0.20-0.35 0.50-0.65     0.75-0.90
+  Boutique Klon (Dumble ODS)  0.20-0.35 0.40-0.55     0.65-0.85
+  Mesa Dual Rectifier         0.10-0.20 0.30-0.45     0.65-0.95   ← scooped, big
+  Mesa Mark IIC+              0.15-0.25 0.30-0.45     0.65-0.85   ← mid-focused
+  Orange OR120                0.20-0.35 0.40-0.55     0.65-0.85
+  Friedman BE-100             0.10-0.20 0.30-0.45     0.65-0.90   ← modern hi-gain
+  EVH 5150 III                0.05-0.15 0.25-0.40     0.60-0.95   ← biggest gain
+  Diezel Herbert              0.10-0.20 0.30-0.45     0.65-0.90
+
+CHARACTER NOTES:
+- Twin/Deluxe: scoop slightly for chime (Mid 0.45-0.55, Treble 0.65-0.75).
+  Bright switch ON for country/clean snap, OFF for jazz/warmth.
+- AC30/AC15: high Treble (0.7+) is the chime. Don't bury Mid (~0.5+).
+- JCM800: scooped EQ is wrong — keep Mid 0.55-0.70 for that classic British
+  midrange bark. Bass 0.4-0.55, Treble 0.55-0.7.
+- Mesa Rectifier: scooped EQ IS the sound — Bass 0.65+, Mid 0.25-0.35,
+  Treble 0.55-0.7. Tight low end on V30 cab.
+- 5150/Friedman: tight gate critical. Always pair with noise gate. Bass
+  0.4-0.6 (anything more = mud), Mid 0.5-0.7, Treble 0.5-0.7.
+- Matchless/AC30: very dynamic — touch sensitivity is the point. Avoid
+  excessive compression. Master 0.65+ for power-amp interaction.
+- Klon (Dumble ODS): smooth, vocal mids. Mid 0.6-0.75 for the singing
+  sustain, Treble moderate (0.5-0.65), Bass tight (0.4-0.5).
+
+POWER AMP / FEEL PARAMS (when in doubt, leave at 0.5):
+- Sag higher = looser, more compressed feel (good for blues, country)
+- Sag lower = tighter, more modern (good for high-gain rhythm)
+- Ripple higher = more low-end bloom (vintage feel)
+- Master/MasterVol: Master is preamp output level; MasterVol is power amp.
+  For lead boost in snapshots, raise Master 0.05-0.15 above the rhythm value.
+
+================================================================
 CAB MIC PARAMETER GUIDE
 ================================================================
 

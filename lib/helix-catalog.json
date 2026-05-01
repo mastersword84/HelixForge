@@ -1,0 +1,1575 @@
+{
+  "generatedAt": "2026-05-01T07:42:52.438Z",
+  "sourceFiles": [
+    "generated-test.hsp",
+    "guitars__cadillacs___dwight_yoakam.hsp",
+    "Nashville.hsp",
+    "template.hsp",
+    "twin-v2.hsp"
+  ],
+  "inputs": {
+    "P35_InputInst1": {
+      "sampleCount": 4,
+      "params": {
+        "Pad": {
+          "type": "number",
+          "min": 1,
+          "max": 1,
+          "samples": 1
+        },
+        "Trim": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "decay": {
+          "type": "number",
+          "min": 0.009999999776482582,
+          "max": 0.10000000149011612,
+          "samples": 2
+        },
+        "noiseGate": {
+          "type": "boolean",
+          "examples": [
+            true,
+            false
+          ]
+        },
+        "threshold": {
+          "type": "number",
+          "min": -60.70000076293945,
+          "max": -48,
+          "samples": 2
+        }
+      }
+    },
+    "P35_InputNone": {
+      "sampleCount": 4,
+      "params": {
+        "Trim": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "decay": {
+          "type": "number",
+          "min": 0.10000000149011612,
+          "max": 0.10000000149011612,
+          "samples": 1
+        },
+        "noiseGate": {
+          "type": "boolean",
+          "examples": [
+            false
+          ]
+        },
+        "threshold": {
+          "type": "number",
+          "min": -48,
+          "max": -48,
+          "samples": 1
+        }
+      }
+    }
+  },
+  "outputs": {
+    "P35_OutputMatrix": {
+      "sampleCount": 7,
+      "params": {
+        "gain": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "pan": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        }
+      }
+    },
+    "P35_OutputPath2A": {
+      "sampleCount": 1,
+      "params": {
+        "gain": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "pan": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        }
+      }
+    }
+  },
+  "amps": {
+    "Agoura_AmpUSDoubleBlack": {
+      "sampleCount": 3,
+      "params": {
+        "AmpCabPeak2Fc": {
+          "type": "number",
+          "min": 1000,
+          "max": 1000,
+          "samples": 1
+        },
+        "AmpCabPeak2G": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "AmpCabPeak2Q": {
+          "type": "number",
+          "min": 0.7070000171661377,
+          "max": 0.7070000171661377,
+          "samples": 1
+        },
+        "AmpCabPeakFc": {
+          "type": "number",
+          "min": 100,
+          "max": 100,
+          "samples": 1
+        },
+        "AmpCabPeakG": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "AmpCabPeakQ": {
+          "type": "number",
+          "min": 0.7070000171661377,
+          "max": 0.7070000171661377,
+          "samples": 1
+        },
+        "AmpCabShelfF": {
+          "type": "number",
+          "min": 1000,
+          "max": 1000,
+          "samples": 1
+        },
+        "AmpCabShelfG": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "AmpCabZFir": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "AmpCabZUpdate": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Bass": {
+          "type": "number",
+          "min": 0.55,
+          "max": 0.5799999833106995,
+          "samples": 2
+        },
+        "Channel": {
+          "type": "number",
+          "min": 0,
+          "max": 1,
+          "samples": 2
+        },
+        "Drive": {
+          "type": "number",
+          "min": 0.32,
+          "max": 0.3700000047683716,
+          "samples": 3
+        },
+        "Hype": {
+          "type": "number",
+          "min": 0,
+          "max": 0.4,
+          "samples": 2
+        },
+        "Level": {
+          "type": "number",
+          "min": -6,
+          "max": 0,
+          "samples": 2
+        },
+        "Master": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "Mid": {
+          "type": "number",
+          "min": 0.44999998807907104,
+          "max": 0.65,
+          "samples": 3
+        },
+        "NrmBright": {
+          "type": "boolean",
+          "examples": [
+            true
+          ]
+        },
+        "NrmMode": {
+          "type": "boolean",
+          "examples": [
+            true
+          ]
+        },
+        "Presence": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.55,
+          "samples": 2
+        },
+        "Ripple": {
+          "type": "number",
+          "min": 0,
+          "max": 0.5,
+          "samples": 2
+        },
+        "Sag": {
+          "type": "number",
+          "min": 0,
+          "max": 0.5,
+          "samples": 2
+        },
+        "Treble": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.62,
+          "samples": 3
+        },
+        "ZPrePost": {
+          "type": "number",
+          "min": 0.30000001192092896,
+          "max": 0.33000001311302185,
+          "samples": 2
+        },
+        "Bright": {
+          "type": "number",
+          "min": 0,
+          "max": 1,
+          "samples": 2
+        },
+        "MasterVol": {
+          "type": "number",
+          "min": 1,
+          "max": 1,
+          "samples": 1
+        },
+        "VibBass": {
+          "type": "number",
+          "min": 0.7099999785423279,
+          "max": 0.7099999785423279,
+          "samples": 1
+        },
+        "VibBright": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "VibMid": {
+          "type": "number",
+          "min": 0.800000011920929,
+          "max": 0.800000011920929,
+          "samples": 1
+        },
+        "VibTreb": {
+          "type": "number",
+          "min": 0.41999998688697815,
+          "max": 0.41999998688697815,
+          "samples": 1
+        },
+        "VibratoVolume": {
+          "type": "number",
+          "min": 0.3199999928474426,
+          "max": 0.3199999928474426,
+          "samples": 1
+        }
+      }
+    },
+    "Agoura_AmpEssexTB30CC": {
+      "sampleCount": 1,
+      "params": {
+        "AmpCabPeak2Fc": {
+          "type": "number",
+          "min": 1000,
+          "max": 1000,
+          "samples": 1
+        },
+        "AmpCabPeak2G": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "AmpCabPeak2Q": {
+          "type": "number",
+          "min": 0.7070000171661377,
+          "max": 0.7070000171661377,
+          "samples": 1
+        },
+        "AmpCabPeakFc": {
+          "type": "number",
+          "min": 100,
+          "max": 100,
+          "samples": 1
+        },
+        "AmpCabPeakG": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "AmpCabPeakQ": {
+          "type": "number",
+          "min": 0.7070000171661377,
+          "max": 0.7070000171661377,
+          "samples": 1
+        },
+        "AmpCabShelfF": {
+          "type": "number",
+          "min": 1000,
+          "max": 1000,
+          "samples": 1
+        },
+        "AmpCabShelfG": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "AmpCabZFir": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "AmpCabZUpdate": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Bass": {
+          "type": "number",
+          "min": 0.3700000047683716,
+          "max": 0.3700000047683716,
+          "samples": 1
+        },
+        "BrtDrv": {
+          "type": "number",
+          "min": 0.28999999165534973,
+          "max": 0.28999999165534973,
+          "samples": 1
+        },
+        "Channel": {
+          "type": "number",
+          "min": 1,
+          "max": 1,
+          "samples": 1
+        },
+        "HighCut": {
+          "type": "number",
+          "min": 0.05000000074505806,
+          "max": 0.05000000074505806,
+          "samples": 1
+        },
+        "Hype": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": -10,
+          "max": -10,
+          "samples": 1
+        },
+        "Master": {
+          "type": "number",
+          "min": 1,
+          "max": 1,
+          "samples": 1
+        },
+        "NrmDrv": {
+          "type": "number",
+          "min": 0.7300000190734863,
+          "max": 0.7300000190734863,
+          "samples": 1
+        },
+        "Ripple": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Sag": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Treble": {
+          "type": "number",
+          "min": 0.7599999904632568,
+          "max": 0.7599999904632568,
+          "samples": 1
+        },
+        "ZPrePost": {
+          "type": "number",
+          "min": 1,
+          "max": 1,
+          "samples": 1
+        }
+      }
+    },
+    "Agoura_AmpSolid100": {
+      "sampleCount": 1,
+      "params": {
+        "AmpCabPeak2Fc": {
+          "type": "number",
+          "min": 1000,
+          "max": 1000,
+          "samples": 1
+        },
+        "AmpCabPeak2G": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "AmpCabPeak2Q": {
+          "type": "number",
+          "min": 0.7070000171661377,
+          "max": 0.7070000171661377,
+          "samples": 1
+        },
+        "AmpCabPeakFc": {
+          "type": "number",
+          "min": 100,
+          "max": 100,
+          "samples": 1
+        },
+        "AmpCabPeakG": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "AmpCabPeakQ": {
+          "type": "number",
+          "min": 0.7070000171661377,
+          "max": 0.7070000171661377,
+          "samples": 1
+        },
+        "AmpCabShelfF": {
+          "type": "number",
+          "min": 1000,
+          "max": 1000,
+          "samples": 1
+        },
+        "AmpCabShelfG": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "AmpCabZFir": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "AmpCabZUpdate": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Bass": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "Channel": {
+          "type": "boolean",
+          "examples": [
+            true
+          ]
+        },
+        "Drive": {
+          "type": "number",
+          "min": 0.699999988079071,
+          "max": 0.699999988079071,
+          "samples": 1
+        },
+        "Hype": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": -2,
+          "max": -2,
+          "samples": 1
+        },
+        "Master": {
+          "type": "number",
+          "min": 0.33000001311302185,
+          "max": 0.33000001311302185,
+          "samples": 1
+        },
+        "Mid": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "NrmBright": {
+          "type": "boolean",
+          "examples": [
+            true
+          ]
+        },
+        "NrmMode": {
+          "type": "boolean",
+          "examples": [
+            true
+          ]
+        },
+        "Presence": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "Ripple": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Sag": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Treble": {
+          "type": "number",
+          "min": 0.800000011920929,
+          "max": 0.800000011920929,
+          "samples": 1
+        },
+        "ZPrePost": {
+          "type": "number",
+          "min": 0.30000001192092896,
+          "max": 0.30000001192092896,
+          "samples": 1
+        }
+      }
+    }
+  },
+  "cabs": {
+    "HD2_CabMicIr_4x10TweedDiamondWithPan": {
+      "sampleCount": 2,
+      "params": {
+        "Angle": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Delay": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Distance": {
+          "type": "number",
+          "min": 0.4,
+          "max": 0.45,
+          "samples": 2
+        },
+        "HighCut": {
+          "type": "number",
+          "min": 8500,
+          "max": 8500,
+          "samples": 1
+        },
+        "IrData": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "LowCut": {
+          "type": "number",
+          "min": 90,
+          "max": 90,
+          "samples": 1
+        },
+        "Mic": {
+          "type": "number",
+          "min": 1,
+          "max": 1,
+          "samples": 1
+        },
+        "Pan": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "Position": {
+          "type": "number",
+          "min": 0.029999999329447743,
+          "max": 0.3,
+          "samples": 2
+        }
+      }
+    },
+    "HD2_CabMicIr_4x12SoloLeadEMWithPan": {
+      "sampleCount": 4,
+      "params": {
+        "Angle": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Delay": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Distance": {
+          "type": "number",
+          "min": 1,
+          "max": 1,
+          "samples": 1
+        },
+        "HighCut": {
+          "type": "number",
+          "min": 9500,
+          "max": 9500,
+          "samples": 1
+        },
+        "IrData": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": -3,
+          "max": 1,
+          "samples": 2
+        },
+        "LowCut": {
+          "type": "number",
+          "min": 50,
+          "max": 50,
+          "samples": 1
+        },
+        "Mic": {
+          "type": "number",
+          "min": 3,
+          "max": 9,
+          "samples": 2
+        },
+        "Pan": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "Position": {
+          "type": "number",
+          "min": 0,
+          "max": 0.029999999329447746,
+          "samples": 2
+        }
+      }
+    },
+    "HD2_CabMicIr_2x12SilverBellWithPan": {
+      "sampleCount": 1,
+      "params": {
+        "Angle": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Delay": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Distance": {
+          "type": "number",
+          "min": 1.25,
+          "max": 1.25,
+          "samples": 1
+        },
+        "HighCut": {
+          "type": "number",
+          "min": 5000,
+          "max": 5000,
+          "samples": 1
+        },
+        "IrData": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "LowCut": {
+          "type": "number",
+          "min": 90,
+          "max": 90,
+          "samples": 1
+        },
+        "Mic": {
+          "type": "number",
+          "min": 11,
+          "max": 11,
+          "samples": 1
+        },
+        "Pan": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "Position": {
+          "type": "number",
+          "min": 0.550000011920929,
+          "max": 0.550000011920929,
+          "samples": 1
+        }
+      }
+    },
+    "HD2_CabMicIr_NoCab": {
+      "sampleCount": 2,
+      "params": {}
+    },
+    "HD2_CabMicIr_2x12DoubleC12NWithPan": {
+      "sampleCount": 1,
+      "params": {
+        "Angle": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Delay": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Distance": {
+          "type": "number",
+          "min": 2,
+          "max": 2,
+          "samples": 1
+        },
+        "HighCut": {
+          "type": "number",
+          "min": 8000,
+          "max": 8000,
+          "samples": 1
+        },
+        "IrData": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "LowCut": {
+          "type": "number",
+          "min": 80,
+          "max": 80,
+          "samples": 1
+        },
+        "Mic": {
+          "type": "number",
+          "min": 5,
+          "max": 5,
+          "samples": 1
+        },
+        "Pan": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "Position": {
+          "type": "number",
+          "min": 0.30000001192092896,
+          "max": 0.30000001192092896,
+          "samples": 1
+        }
+      }
+    }
+  },
+  "fx": {
+    "HD2_CompressorLAStudioCompMono": {
+      "sampleCount": 2,
+      "params": {
+        "PeakReduction": {
+          "type": "number",
+          "min": 0.55,
+          "max": 0.55,
+          "samples": 1
+        },
+        "Gain": {
+          "type": "number",
+          "min": 0.35,
+          "max": 0.35,
+          "samples": 1
+        },
+        "Mix": {
+          "type": "number",
+          "min": 1,
+          "max": 1,
+          "samples": 1
+        }
+      }
+    },
+    "HD2_DistScreamerMono": {
+      "sampleCount": 2,
+      "params": {
+        "Drive": {
+          "type": "number",
+          "min": 0.35,
+          "max": 0.45,
+          "samples": 2
+        },
+        "Tone": {
+          "type": "number",
+          "min": 0.55,
+          "max": 0.55,
+          "samples": 1
+        },
+        "Output": {
+          "type": "number",
+          "min": 0.6,
+          "max": 0.6,
+          "samples": 1
+        }
+      }
+    },
+    "HD2_Reverb63SpringStereo": {
+      "sampleCount": 2,
+      "params": {
+        "DecayTime": {
+          "type": "number",
+          "min": 0.45,
+          "max": 0.45,
+          "samples": 1
+        },
+        "Mix": {
+          "type": "number",
+          "min": 0.2,
+          "max": 0.2,
+          "samples": 1
+        },
+        "Dwell": {
+          "type": "number",
+          "min": 0.4,
+          "max": 0.5,
+          "samples": 2
+        },
+        "PreDelay": {
+          "type": "number",
+          "min": 0.1,
+          "max": 0.1,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "LowCut": {
+          "type": "number",
+          "min": 120,
+          "max": 120,
+          "samples": 1
+        },
+        "HighCut": {
+          "type": "number",
+          "min": 7500,
+          "max": 7500,
+          "samples": 1
+        }
+      }
+    },
+    "HD2_DistKinkyBoostMono": {
+      "sampleCount": 1,
+      "params": {
+        "Boost": {
+          "type": "boolean",
+          "examples": [
+            true
+          ]
+        },
+        "Bright": {
+          "type": "boolean",
+          "examples": [
+            true
+          ]
+        },
+        "Drive": {
+          "type": "number",
+          "min": 0.4699999988079071,
+          "max": 0.4699999988079071,
+          "samples": 1
+        }
+      }
+    },
+    "HD2_DistRatatouilleDistMono": {
+      "sampleCount": 1,
+      "params": {
+        "Filter": {
+          "type": "number",
+          "min": 0.7200000286102295,
+          "max": 0.7200000286102295,
+          "samples": 1
+        },
+        "Gain": {
+          "type": "number",
+          "min": 0.20000000298023224,
+          "max": 0.20000000298023224,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": 0.8399999737739563,
+          "max": 0.8399999737739563,
+          "samples": 1
+        }
+      }
+    },
+    "HD2_DistPrizeDriveMono": {
+      "sampleCount": 1,
+      "params": {
+        "Bass Cut": {
+          "type": "boolean",
+          "examples": [
+            true
+          ]
+        },
+        "Drive": {
+          "type": "number",
+          "min": 0.30000001192092896,
+          "max": 0.30000001192092896,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": 0.6499999761581421,
+          "max": 0.6499999761581421,
+          "samples": 1
+        },
+        "Spectrum": {
+          "type": "number",
+          "min": 0.6600000262260437,
+          "max": 0.6600000262260437,
+          "samples": 1
+        },
+        "Voltage": {
+          "type": "boolean",
+          "examples": [
+            false
+          ]
+        }
+      }
+    },
+    "HD2_DistHeirApparentMono": {
+      "sampleCount": 1,
+      "params": {
+        "Clipping": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Gain": {
+          "type": "number",
+          "min": 0.3100000023841858,
+          "max": 0.3100000023841858,
+          "samples": 1
+        },
+        "GainMod": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": 0.699999988079071,
+          "max": 0.699999988079071,
+          "samples": 1
+        },
+        "Presence": {
+          "type": "number",
+          "min": 0.33000001311302185,
+          "max": 0.33000001311302185,
+          "samples": 1
+        },
+        "Tone": {
+          "type": "number",
+          "min": 0.3700000047683716,
+          "max": 0.3700000047683716,
+          "samples": 1
+        },
+        "Voltage": {
+          "type": "boolean",
+          "examples": [
+            false
+          ]
+        }
+      }
+    },
+    "HD2_EQGraphic10BandMono": {
+      "sampleCount": 1,
+      "params": {
+        "125Hz": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "16kHz": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "1kHz": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "250Hz": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "2kHz": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "31p25Hz": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "4kHz": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "500Hz": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "62p5Hz": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "8kHz": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        }
+      }
+    },
+    "HD2_DelayTransistorTapeMono": {
+      "sampleCount": 1,
+      "params": {
+        "DryThru": {
+          "type": "boolean",
+          "examples": [
+            false
+          ]
+        },
+        "Feedback": {
+          "type": "number",
+          "min": 0.5600000023841858,
+          "max": 0.5600000023841858,
+          "samples": 1
+        },
+        "Headroom": {
+          "type": "number",
+          "min": 4,
+          "max": 4,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Mix": {
+          "type": "number",
+          "min": 0.33000001311302185,
+          "max": 0.33000001311302185,
+          "samples": 1
+        },
+        "SyncSelect1": {
+          "type": "number",
+          "min": 9,
+          "max": 9,
+          "samples": 1
+        },
+        "TempoSync1": {
+          "type": "boolean",
+          "examples": [
+            true
+          ]
+        },
+        "Time": {
+          "type": "number",
+          "min": 0.5070000290870667,
+          "max": 0.5070000290870667,
+          "samples": 1
+        },
+        "WowFlutter": {
+          "type": "number",
+          "min": 0.7799999713897705,
+          "max": 0.7799999713897705,
+          "samples": 1
+        }
+      }
+    },
+    "HD2_DL4TapeEchoStereo": {
+      "sampleCount": 1,
+      "params": {
+        "Bass": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "DryThru": {
+          "type": "boolean",
+          "examples": [
+            true
+          ]
+        },
+        "Feedback": {
+          "type": "number",
+          "min": 0.10000000149011612,
+          "max": 0.10000000149011612,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "Mix": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "SyncSelect1": {
+          "type": "number",
+          "min": 15,
+          "max": 15,
+          "samples": 1
+        },
+        "TempoSync1": {
+          "type": "boolean",
+          "examples": [
+            true
+          ]
+        },
+        "Time": {
+          "type": "number",
+          "min": 0.24300000071525574,
+          "max": 0.24300000071525574,
+          "samples": 1
+        },
+        "Treble": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        }
+      }
+    },
+    "HD2_TremoloHarmonicMono": {
+      "sampleCount": 1,
+      "params": {
+        "BassFreq": {
+          "type": "number",
+          "min": 334,
+          "max": 334,
+          "samples": 1
+        },
+        "DutyCycle": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "Intensity": {
+          "type": "number",
+          "min": 0.7599999904632568,
+          "max": 0.7599999904632568,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": 2,
+          "max": 2,
+          "samples": 1
+        },
+        "Mix": {
+          "type": "number",
+          "min": 1,
+          "max": 1,
+          "samples": 1
+        },
+        "Speed": {
+          "type": "number",
+          "min": 1.899999976158142,
+          "max": 1.899999976158142,
+          "samples": 1
+        },
+        "SyncSelect1": {
+          "type": "number",
+          "min": 6,
+          "max": 6,
+          "samples": 1
+        },
+        "TempoSync1": {
+          "type": "boolean",
+          "examples": [
+            false
+          ]
+        },
+        "TrebFreq": {
+          "type": "number",
+          "min": 1200,
+          "max": 1200,
+          "samples": 1
+        },
+        "WaveShape": {
+          "type": "number",
+          "min": 3,
+          "max": 3,
+          "samples": 1
+        }
+      }
+    },
+    "HD2_Rotary145RotaryStereo": {
+      "sampleCount": 1,
+      "params": {
+        "Blend": {
+          "type": "number",
+          "min": 0.3700000047683716,
+          "max": 0.3700000047683716,
+          "samples": 1
+        },
+        "Drive": {
+          "type": "number",
+          "min": 0.47999998927116394,
+          "max": 0.47999998927116394,
+          "samples": 1
+        },
+        "FastSpeed": {
+          "type": "number",
+          "min": 4,
+          "max": 4,
+          "samples": 1
+        },
+        "Headroom": {
+          "type": "number",
+          "min": 1.7999999523162842,
+          "max": 1.7999999523162842,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": -6,
+          "max": -6,
+          "samples": 1
+        },
+        "Mix": {
+          "type": "number",
+          "min": 1,
+          "max": 1,
+          "samples": 1
+        },
+        "RampTime": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "SlowSpeed": {
+          "type": "number",
+          "min": 3.5,
+          "max": 3.5,
+          "samples": 1
+        },
+        "Speed": {
+          "type": "boolean",
+          "examples": [
+            false
+          ]
+        },
+        "SyncSelect1": {
+          "type": "number",
+          "min": 6,
+          "max": 6,
+          "samples": 1
+        },
+        "SyncSelect2": {
+          "type": "number",
+          "min": 6,
+          "max": 6,
+          "samples": 1
+        },
+        "TempoSync1": {
+          "type": "boolean",
+          "examples": [
+            false
+          ]
+        },
+        "TempoSync2": {
+          "type": "boolean",
+          "examples": [
+            false
+          ]
+        }
+      }
+    },
+    "VIC_DynPlateMono": {
+      "sampleCount": 1,
+      "params": {
+        "BassBoost": {
+          "type": "number",
+          "min": 2,
+          "max": 2,
+          "samples": 1
+        },
+        "BassFreq": {
+          "type": "number",
+          "min": 204,
+          "max": 204,
+          "samples": 1
+        },
+        "Damping": {
+          "type": "number",
+          "min": 6000,
+          "max": 6000,
+          "samples": 1
+        },
+        "Decay": {
+          "type": "number",
+          "min": 2.5999999046325684,
+          "max": 2.5999999046325684,
+          "samples": 1
+        },
+        "HighCut": {
+          "type": "number",
+          "min": 18400,
+          "max": 18400,
+          "samples": 1
+        },
+        "Level": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "LowCut": {
+          "type": "number",
+          "min": 213,
+          "max": 213,
+          "samples": 1
+        },
+        "MatrFreq": {
+          "type": "number",
+          "min": 0.18000000715255737,
+          "max": 0.18000000715255737,
+          "samples": 1
+        },
+        "Mix": {
+          "type": "number",
+          "min": 0.23000000417232513,
+          "max": 0.23000000417232513,
+          "samples": 1
+        },
+        "PreDelay": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "VarDelayAmpl": {
+          "type": "number",
+          "min": 0.5799999833106995,
+          "max": 0.5799999833106995,
+          "samples": 1
+        }
+      }
+    },
+    "HD2_VolPanVolMono": {
+      "sampleCount": 1,
+      "params": {
+        "Pedal": {
+          "type": "number",
+          "min": 1,
+          "max": 1,
+          "samples": 1
+        },
+        "VolumeTaper": {
+          "type": "boolean",
+          "examples": [
+            false
+          ]
+        }
+      }
+    }
+  },
+  "splits": {
+    "P35_AppDSPSplitY": {
+      "sampleCount": 1,
+      "params": {
+        "BalanceA": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "BalanceB": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "enable": {
+          "type": "boolean",
+          "examples": [
+            false
+          ]
+        }
+      }
+    }
+  },
+  "joins": {
+    "P35_AppDSPJoin": {
+      "sampleCount": 1,
+      "params": {
+        "A Level": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "A Pan": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "B Level": {
+          "type": "number",
+          "min": 0,
+          "max": 0,
+          "samples": 1
+        },
+        "B Pan": {
+          "type": "number",
+          "min": 0.5,
+          "max": 0.5,
+          "samples": 1
+        },
+        "B Polarity": {
+          "type": "boolean",
+          "examples": [
+            false
+          ]
+        },
+        "Level": {
+          "type": "number",
+          "min": 3,
+          "max": 3,
+          "samples": 1
+        }
+      }
+    }
+  },
+  "other": {}
+}
