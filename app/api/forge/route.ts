@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { HELIX_SYSTEM_PROMPT } from "@/lib/helix-knowledge";
+import { lookupSong, buildSectionSummaryForForge } from "@/lib/song-lookup";
 
 const client = new Anthropic();
 
@@ -121,11 +122,22 @@ export async function POST(req: NextRequest) {
       if (!songTitle?.trim() || !artist?.trim()) {
         return NextResponse.json({ error: "Song title and artist are required" }, { status: 400 });
       }
+
+      let structureContext = audioAnalysis as string | undefined;
+      if (!structureContext) {
+        try {
+          const lookup = await lookupSong({ title: songTitle.trim(), artist: artist.trim() });
+          if (lookup.found) structureContext = buildSectionSummaryForForge(lookup);
+        } catch (err) {
+          console.error("Song lookup failed, falling back to general knowledge:", err);
+        }
+      }
+
       userPrompt = buildCoverSongPrompt(
         songTitle.trim(),
         artist.trim(),
         notes?.trim() || "",
-        audioAnalysis || undefined
+        structureContext
       );
     } else {
       if (!description?.trim()) {
