@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-05-01T07:54:17.142Z",
-  "presetCount": 69,
+  "generatedAt": "2026-05-01T09:22:24.492Z",
+  "presetCount": 67,
   "presets": [
     {
       "file": "2 Guitar Rig.hsp",
@@ -2052,59 +2052,6 @@
         "tape-delay",
         "tremolo",
         "vintage"
-      ]
-    },
-    {
-      "file": "generated-test.hsp",
-      "name": "Twin Clean",
-      "info": "Warm Fender Twin clean tone with subtle optical compression for sweetness and a touch of '63 spring reverb for vintage ambience. A light Tube Screamer is available on snapshot 2 for breakup and lead boost on snapshot 3.",
-      "amps": [
-        "Agoura_AmpUSDoubleBlack"
-      ],
-      "cabs": [
-        "HD2_CabMicIr_4x10TweedDiamondWithPan"
-      ],
-      "fx": [
-        "HD2_CompressorLAStudioCompMono",
-        "HD2_DistScreamerMono",
-        "HD2_Reverb63SpringStereo"
-      ],
-      "fxCount": 3,
-      "tags": [
-        "blues",
-        "clean",
-        "compression",
-        "country",
-        "fender",
-        "spring-reverb",
-        "studio",
-        "tubescreamer"
-      ]
-    },
-    {
-      "file": "twin-v2.hsp",
-      "name": "Twin V2",
-      "info": "Warm Fender Twin clean platform with a Royer 121 on a 4x10 Tweed cab for smooth, vintage-leaning chime. LA Studio Comp evens out the dynamics, a Tube Screamer adds boost/lead push, and a '63 Spring Reverb provides classic Fender wash. Snapshots scale Drive and Master plus engage the Screamer for stacked lead.",
-      "amps": [
-        "Agoura_AmpUSDoubleBlack"
-      ],
-      "cabs": [
-        "HD2_CabMicIr_4x10TweedDiamondWithPan"
-      ],
-      "fx": [
-        "HD2_CompressorLAStudioCompMono",
-        "HD2_DistScreamerMono",
-        "HD2_Reverb63SpringStereo"
-      ],
-      "fxCount": 3,
-      "tags": [
-        "blues",
-        "clean",
-        "compression",
-        "country",
-        "fender",
-        "spring-reverb",
-        "tubescreamer"
       ]
     },
     {

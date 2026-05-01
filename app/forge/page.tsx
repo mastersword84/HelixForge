@@ -560,20 +560,35 @@ function ResultState({ result, onReset }: { result: ForgeResult; onReset: () => 
 
       {/* Downloads */}
       <div className="flex flex-col gap-3">
-        <button
-          onClick={() => downloadHsp(hsp, meta.name)}
-          className="flex items-center justify-center gap-3 w-full py-4 rounded text-sm font-bold font-mono transition-all duration-200"
-          style={{ background: "var(--forge-ember)", color: "var(--forge-black)", boxShadow: "0 0 20px rgba(255,107,26,0.3)" }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--forge-glow)"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--forge-ember)"; }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          Download {meta.name}.hsp
-        </button>
+        {hsp && (
+          <button
+            onClick={() => downloadHsp(hsp, meta.name)}
+            className="flex items-center justify-center gap-3 w-full py-4 rounded text-sm font-bold font-mono transition-all duration-200"
+            style={{ background: "var(--forge-ember)", color: "var(--forge-black)", boxShadow: "0 0 20px rgba(255,107,26,0.3)" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--forge-glow)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--forge-ember)"; }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download {meta.name}.hsp
+          </button>
+        )}
+        {!hsp && (
+          <div
+            className="text-center py-3 px-4 rounded text-xs font-mono"
+            style={{
+              background: "rgba(74,240,255,0.08)",
+              border: "1px solid rgba(74,240,255,0.2)",
+              color: "var(--forge-arc)",
+            }}
+          >
+            ⚡ MIDI-only mode — no preset to download.<br />
+            On Stadium, manually load any factory preset that matches the song&apos;s tone — the MIDI automation switches its snapshots in time.
+          </div>
+        )}
 
         {isCover && meta.sections && meta.midiInfo && (
           <button
@@ -746,7 +761,7 @@ export default function ForgePage() {
 
   const isActive = status === "analyzing" || status === "forging";
 
-  const forge = useCallback(async () => {
+  const forge = useCallback(async (midiOnly = false) => {
     if (!canForge || isActive) return;
     setError("");
     setResult(null);
@@ -754,8 +769,8 @@ export default function ForgePage() {
 
     let audioAnalysis: string | undefined;
 
-    // Step 1: analyze audio if cover + file uploaded
-    if (mode === "cover" && coverAudioFile) {
+    // Step 1: analyze audio if cover + file uploaded (skip in midiOnly mode)
+    if (!midiOnly && mode === "cover" && coverAudioFile) {
       setStatus("analyzing");
       try {
         const result = await analyzeAudioFile(coverAudioFile);
@@ -763,17 +778,15 @@ export default function ForgePage() {
         audioAnalysis = result.summary;
       } catch (e) {
         console.warn("Audio analysis failed, continuing without it:", e);
-        // Non-fatal — fall through to forge without audio data
       }
     }
 
-    // Step 2: forge
     setStatus("forging");
 
     try {
       const body =
         mode === "cover"
-          ? { mode: "cover", songTitle, artist, notes: coverNotes, audioAnalysis }
+          ? { mode: "cover", songTitle, artist, notes: coverNotes, audioAnalysis, midiOnly }
           : { mode: "describe", description: description || `Tone from audio: ${audioFile?.name}`, presetName };
 
       const res = await fetch("/api/forge", {
@@ -1059,43 +1072,64 @@ export default function ForgePage() {
             </div>
           )}
 
-          {/* Forge button */}
-          <button
-            onClick={forge}
-            disabled={!canForge || isActive}
-            className="w-full py-4 rounded text-sm font-bold font-mono flex items-center justify-center gap-3 transition-all duration-200 mt-auto"
-            style={{
-              background: isActive ? "var(--forge-dim)" : canForge ? "var(--forge-ember)" : "var(--forge-iron)",
-              color: canForge ? "var(--forge-black)" : "var(--forge-faint)",
-              cursor: !canForge || isActive ? "not-allowed" : "pointer",
-              boxShadow: canForge && !isActive ? "0 0 20px rgba(255,107,26,0.25)" : "none",
-            }}
-            onMouseEnter={(e) => { if (canForge && !isActive) (e.currentTarget as HTMLElement).style.background = "var(--forge-glow)"; }}
-            onMouseLeave={(e) => { if (canForge && !isActive) (e.currentTarget as HTMLElement).style.background = "var(--forge-ember)"; }}
-          >
-            {status === "analyzing" ? (
-              <>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-spin">
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                </svg>
-                ANALYZING AUDIO...
-              </>
-            ) : status === "forging" ? (
-              <>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-spin">
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                </svg>
-                {mode === "cover" ? "FORGING COVER PRESET..." : "FORGING..."}
-              </>
-            ) : (
-              <>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                </svg>
-                {mode === "cover" ? "FORGE COVER PRESET" : "FORGE PRESET"}
-              </>
+          {/* Forge buttons */}
+          <div className="flex flex-col gap-2 mt-auto">
+            <button
+              onClick={() => forge(false)}
+              disabled={!canForge || isActive}
+              className="w-full py-4 rounded text-sm font-bold font-mono flex items-center justify-center gap-3 transition-all duration-200"
+              style={{
+                background: isActive ? "var(--forge-dim)" : canForge ? "var(--forge-ember)" : "var(--forge-iron)",
+                color: canForge ? "var(--forge-black)" : "var(--forge-faint)",
+                cursor: !canForge || isActive ? "not-allowed" : "pointer",
+                boxShadow: canForge && !isActive ? "0 0 20px rgba(255,107,26,0.25)" : "none",
+              }}
+              onMouseEnter={(e) => { if (canForge && !isActive) (e.currentTarget as HTMLElement).style.background = "var(--forge-glow)"; }}
+              onMouseLeave={(e) => { if (canForge && !isActive) (e.currentTarget as HTMLElement).style.background = "var(--forge-ember)"; }}
+            >
+              {status === "analyzing" ? (
+                <>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-spin">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                  </svg>
+                  ANALYZING AUDIO...
+                </>
+              ) : status === "forging" ? (
+                <>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-spin">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                  </svg>
+                  {mode === "cover" ? "FORGING COVER PRESET..." : "FORGING..."}
+                </>
+              ) : (
+                <>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                  </svg>
+                  {mode === "cover" ? "FORGE COVER PRESET" : "FORGE PRESET"}
+                </>
+              )}
+            </button>
+
+            {mode === "cover" && (
+              <button
+                onClick={() => forge(true)}
+                disabled={!canForge || isActive}
+                className="w-full py-3 rounded text-xs font-bold font-mono flex items-center justify-center gap-2 transition-all duration-200"
+                style={{
+                  background: "transparent",
+                  border: "1px solid var(--forge-arc)",
+                  color: canForge && !isActive ? "var(--forge-arc)" : "var(--forge-faint)",
+                  cursor: !canForge || isActive ? "not-allowed" : "pointer",
+                }}
+                onMouseEnter={(e) => { if (canForge && !isActive) (e.currentTarget as HTMLElement).style.background = "rgba(74,240,255,0.08)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                title="Skips preset generation (zero brick risk). Generates only the MIDI automation track. Use a factory preset on Stadium that matches the song."
+              >
+                ⚡ MIDI ONLY (SAFE) — no preset, just automation
+              </button>
             )}
-          </button>
+          </div>
         </div>
 
         {/* Output panel */}
