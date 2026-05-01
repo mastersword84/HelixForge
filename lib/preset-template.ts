@@ -31,6 +31,13 @@ export interface PresetDecisions {
 export interface BlockDecision {
   model: string;
   params?: Record<string, number | boolean>;
+  /**
+   * Per-snapshot parameter overrides. Each entry is an 8-element array; null
+   * means "inherit the default value" for that snapshot. e.g.
+   *   { Drive: [0.3, 0.5, 0.7, null, null, null, null, null] }
+   * gives CLEAN drive 0.3, CRUNCH 0.5, LEAD 0.7, snapshots 4-8 use default.
+   */
+  snapshotParams?: Record<string, (number | boolean | null)[]>;
 }
 
 export interface FxDecision {
@@ -39,6 +46,8 @@ export interface FxDecision {
   params?: Record<string, number | boolean>;
   /** 8-element bypass map. true = active in that snapshot, false = bypassed. */
   snapshotEnabled?: boolean[];
+  /** Per-snapshot parameter values (same shape as BlockDecision.snapshotParams). */
+  snapshotParams?: Record<string, (number | boolean | null)[]>;
 }
 
 export interface SnapshotDecision {
@@ -93,14 +102,16 @@ function setBlockSnapshotEnabled(block: JsonObj, snapshotEnabled: boolean[]): vo
 
 /**
  * Replace the model + merge params on a block's slot[0].
- * Existing params not mentioned in `params` are preserved (allows partial overrides).
  * If `replaceParams` is true, the existing slot params are wiped first — required
- * when swapping to a different model since old params won't match the new model.
+ * when swapping to a different model since old model's params don't apply to new
+ * model. `snapshotParams` adds snapshots: [...] arrays to specified params for
+ * per-snapshot value variations (e.g., Drive 0.3 in CLEAN, 0.7 in LEAD).
  */
 function patchSlot(
   block: JsonObj,
   model: string,
   params?: Record<string, number | boolean>,
+  snapshotParams?: Record<string, (number | boolean | null)[]>,
   replaceParams = false
 ): void {
   const slot = Array.isArray(block.slot) ? (block.slot as JsonObj[]) : null;
@@ -108,13 +119,24 @@ function patchSlot(
     throw new Error("Block has no slot[] to patch");
   }
   slot[0].model = model;
-  if (replaceParams || params) {
-    const target = replaceParams ? ((slot[0].params = {}) as JsonObj) :
-      (isObject(slot[0].params) ? slot[0].params : ((slot[0].params = {}) as JsonObj));
-    if (params) {
-      for (const [key, value] of Object.entries(params)) {
-        target[key] = { value };
-      }
+
+  const target: JsonObj = replaceParams
+    ? ((slot[0].params = {}) as JsonObj)
+    : (isObject(slot[0].params) ? slot[0].params : ((slot[0].params = {}) as JsonObj));
+
+  if (params) {
+    for (const [key, value] of Object.entries(params)) {
+      const existing = isObject(target[key]) ? (target[key] as JsonObj) : {};
+      target[key] = { ...existing, value };
+    }
+  }
+
+  if (snapshotParams) {
+    for (const [key, snapArr] of Object.entries(snapshotParams)) {
+      const padded = snapArr.slice(0, 8);
+      while (padded.length < 8) padded.push(null);
+      const existing = isObject(target[key]) ? (target[key] as JsonObj) : { value: padded.find((v) => v != null) ?? 0 };
+      target[key] = { ...existing, snapshots: padded };
     }
   }
 }
@@ -176,8 +198,20 @@ export function applyDecisions(decisions: PresetDecisions): AppliedPreset {
   if (!ampKey || !cabKey) {
     throw new Error(`Template missing amp (${ampKey}) or cab (${cabKey}) block`);
   }
-  patchSlot(path1[ampKey] as JsonObj, decisions.amp.model, decisions.amp.params);
-  patchSlot(path1[cabKey] as JsonObj, decisions.cab.model, decisions.cab.params);
+  patchSlot(
+    path1[ampKey] as JsonObj,
+    decisions.amp.model,
+    decisions.amp.params,
+    decisions.amp.snapshotParams,
+    /*replaceParams*/ true
+  );
+  patchSlot(
+    path1[cabKey] as JsonObj,
+    decisions.cab.model,
+    decisions.cab.params,
+    decisions.cab.snapshotParams,
+    /*replaceParams*/ true
+  );
 
   // ── FX blocks ──────────────────────────────────────────
   // Build a map of which FX slots Claude wants to use. Existing template FX
@@ -208,7 +242,7 @@ export function applyDecisions(decisions: PresetDecisions): AppliedPreset {
 
     const wanted = fxMap.get(key);
     if (wanted) {
-      patchSlot(block, wanted.model, wanted.params, /*replaceParams*/ true);
+      patchSlot(block, wanted.model, wanted.params, wanted.snapshotParams, /*replaceParams*/ true);
       setBlockSnapshotEnabled(
         block,
         wanted.snapshotEnabled ?? [true, true, true, true, true, true, true, true]
@@ -226,7 +260,7 @@ export function applyDecisions(decisions: PresetDecisions): AppliedPreset {
       throw new Error(`Invalid FX slot key from decisions: ${slotKey}`);
     }
     const newBlock = buildFxBlock(slotKey, 0);
-    patchSlot(newBlock, fx.model, fx.params, /*replaceParams*/ true);
+    patchSlot(newBlock, fx.model, fx.params, fx.snapshotParams, /*replaceParams*/ true);
     setBlockSnapshotEnabled(
       newBlock,
       fx.snapshotEnabled ?? [true, true, true, true, true, true, true, true]

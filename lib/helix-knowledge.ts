@@ -454,33 +454,38 @@ This makes the file format unbreakable.
 Output a single JSON object matching this schema EXACTLY:
 
 {
-  "name": "Preset name (max 16 chars works best on Stadium display)",
+  "name": "Preset name (keep short for Stadium display)",
   "info": "1-3 sentence description of the tone and how it was built",
   "amp": {
     "model": "Agoura_AmpUSDoubleBlack",
     "params": {
-      "Drive": 0.4,        // 0.0-1.0 normalized for most amp params
+      "Drive": 0.4,
       "Bass": 0.6,
       "Mid": 0.7,
       "Treble": 0.7,
       "Master": 0.5,
-      "Channel": 0,        // integer choices stay integers
+      "Presence": 0.5,
+      "Channel": 0,
       "Bright": 1
+    },
+    "snapshotParams": {
+      "Drive":  [0.32, 0.55, 0.75, null, null, null, null, null],
+      "Master": [0.5,  0.6,  0.75, null, null, null, null, null]
     }
   },
   "cab": {
     "model": "HD2_CabMicIr_4x10TweedDiamondWithPan",
     "params": {
-      "Mic": 0,            // mic type 0-11 (see MIC TYPES table above)
-      "LowCut": 80,        // Hz (literal frequency)
-      "HighCut": 8000,     // Hz
+      "Mic": 0,
+      "LowCut": 80,
+      "HighCut": 8000,
       "Distance": 0.4,
-      "Level": 0           // dB (literal)
+      "Level": 0
     }
   },
   "fx": [
     {
-      "slot": "b01",                        // pre-amp: b01-b05; post-amp: b07-b12
+      "slot": "b01",
       "model": "HD2_CompressorLAStudioCompMono",
       "params": { "PeakReduction": 0.55, "Gain": 0.3, "Mix": 1.0 },
       "snapshotEnabled": [true, true, true, true, true, true, true, true]
@@ -492,20 +497,32 @@ Output a single JSON object matching this schema EXACTLY:
       "snapshotEnabled": [false, false, true, false, false, false, false, false]
     },
     {
-      "slot": "b07",
+      "slot": "b08",
       "model": "HD2_Reverb63SpringStereo",
       "params": { "DecayTime": 0.35, "Mix": 0.18, "Level": 0 },
-      "snapshotEnabled": [true, true, true, true, true, true, true, true]
+      "snapshotEnabled": [true, true, true, true, true, true, true, true],
+      "snapshotParams": {
+        "Mix": [0.12, 0.15, 0.22, null, null, null, null, null]
+      }
     }
   ],
   "snapshots": [
-    { "name": "VERSE" },
-    { "name": "CHORUS" },
-    { "name": "SOLO" },
+    { "name": "CLEAN" },
+    { "name": "CRUNCH" },
+    { "name": "LEAD" },
     null, null, null, null, null
   ],
   "tempo": 120
 }
+
+WHY snapshotParams MATTERS (this is what makes snapshots feel different):
+- "snapshotEnabled" only toggles a block on/off. That alone makes snapshots feel
+  samey because the amp settings stay identical across all 8 snapshots.
+- "snapshotParams" lets you give the SAME amp different drive/master/EQ values per
+  snapshot. CLEAN gets Drive 0.32, CRUNCH gets 0.55, LEAD gets 0.75 — all on
+  the same Twin amp. THIS is what real Helix users do.
+- Use snapshotParams on amp Drive, Master/Volume, Presence, and on FX Mix levels.
+- Each entry is an 8-element array; use null where the default value applies.
 
 RULES:
 - "snapshotEnabled" arrays MUST be exactly 8 booleans (one per snapshot 1-8).
