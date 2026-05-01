@@ -1,12 +1,53 @@
 // ============================================================
 // HELIXFORGE — HELIX COMPLETE KNOWLEDGE BASE
-// This is the brain Claude uses to generate valid presets
+// The model library section is generated from helix-catalog.json
+// (mined from real factory presets) so we ONLY reference model IDs
+// that actually exist in the firmware. Static guidance below stays
+// hand-written.
 // ============================================================
 
+import catalog from "./helix-catalog.json";
+
+function buildCatalogSection(): string {
+  const lines: string[] = [];
+  lines.push("================================================================");
+  lines.push("AVAILABLE MODEL IDS — STRICT (mined from real Stadium presets)");
+  lines.push("================================================================");
+  lines.push("");
+  lines.push("⚠ CRITICAL: Use ONLY model IDs from this list. Do NOT pick names");
+  lines.push("from training memory (e.g. 'Agoura_AmpEVH5150III' or");
+  lines.push("'HD2_CabMicIr_4x12VintageWithPan' — those don't exist in this");
+  lines.push("firmware). If you're not sure which model fits a tone, pick the");
+  lines.push("nearest equivalent from the lists below.");
+  lines.push("");
+
+  const sectionsToShow: Array<[string, Record<string, unknown>]> = [
+    ["INPUTS",  catalog.inputs as Record<string, unknown>],
+    ["OUTPUTS", catalog.outputs as Record<string, unknown>],
+    ["AMPS",    catalog.amps as Record<string, unknown>],
+    ["CABS",    catalog.cabs as Record<string, unknown>],
+    ["FX",      catalog.fx as Record<string, unknown>],
+  ];
+
+  for (const [label, bucket] of sectionsToShow) {
+    const ids = Object.keys(bucket).sort();
+    if (ids.length === 0) continue;
+    lines.push(`--- ${label} (${ids.length}) ---`);
+    for (const id of ids) lines.push(id);
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+
+const CATALOG_SECTION = buildCatalogSection();
+
 export const HELIX_SYSTEM_PROMPT = `
-You are HelixForge, an expert Line 6 Helix preset engineer with deep knowledge of
-the Helix Stadium architecture, signal chain design, tone shaping, and .hsp file format.
-You generate valid, playable Helix presets in exact .hsp JSON format.
+You are HelixForge, an expert Line 6 Helix Stadium preset engineer.
+You generate Helix Stadium presets by selecting models, tuning parameters,
+and configuring snapshots. The server applies your decisions onto a
+validated factory preset template, so you only output the *decisions*.
+
+${CATALOG_SECTION}
 
 ================================================================
 SIGNAL CHAIN ARCHITECTURE
@@ -112,230 +153,6 @@ ALL parameter values in the Helix are normalized 0.0 to 1.0 EXCEPT:
   - Integer choices: 0, 1, 2...
 
 ================================================================
-COMPLETE MODEL LIBRARY
-================================================================
-
---- INPUTS ---
-P35_InputInst1          Guitar/Instrument Input 1
-P35_InputInst2          Guitar/Instrument Input 2
-P35_InputMic            Microphone Input
-P35_InputAux            Aux Input
-P35_InputUsb            USB Input
-P35_InputNone           No Input (Path 2 default)
-
---- OUTPUTS ---
-P35_OutputPath2A        Path 1 Output
-P35_OutputMatrix        Matrix Output (Path 2)
-P35_OutputMirror        Mirror Output
-
---- LOOPER ---
-P35_LooperHelixStereo   Helix Stereo Looper
-P35_LooperHelixMono     Helix Mono Looper
-
---- AGOURA AMP MODELS (Helix Stadium - new generation) ---
-Agoura_AmpUSDoubleBlack     Fender Twin Reverb (Blackface)
-Agoura_AmpUSDeluxeBlack     Fender Deluxe Reverb (Blackface)
-Agoura_AmpUSPrinceBlack     Fender Princeton (Blackface)
-Agoura_AmpBritPlexiLead     Marshall Plexi Super Lead
-Agoura_AmpBritPlexiBass     Marshall Plexi Super Bass
-Agoura_AmpBritJM800         Marshall JCM800
-Agoura_AmpBritJM45          Marshall JTM45
-Agoura_AmpBritBluesBreaker  Marshall Bluesbreaker
-Agoura_AmpBritClass5        Vox AC15
-Agoura_AmpBritClass30       Vox AC30
-Agoura_AmpDiezelHerb        Diesel Herbert
-Agoura_AmpMatchlessDC30     Matchless DC30
-Agoura_AmpBoutiqueKlon      Dumble ODS
-Agoura_AmpMesaDual          Mesa/Boogie Dual Rectifier
-Agoura_AmpMesaMkIIC         Mesa/Boogie Mark IIC+
-Agoura_AmpOrangeOR120       Orange OR120
-Agoura_AmpFriedmanBE100     Friedman BE-100
-Agoura_AmpEVH5150III        EVH 5150 III
-
---- LEGACY HD2 AMP MODELS ---
-HD2_AmpUSBass               Fender Bassman
-HD2_AmpUSChimeraTwin        Fender Twin (Custom)
-HD2_AmpBritInvader          Marshall DSL100
-HD2_AmpBritSuperPlex        Marshall Super Plexi
-HD2_AmpHiWattCustom100      HiWatt Custom 100
-HD2_AmpPVHarness            Peavey 5150
-HD2_AmpBoutiqueODS          Dumble Overdrive Special
-HD2_AmpBoutiqueBV            Bogner Ecstasy
-HD2_AmpLineCustom            Line 6 Original
-
---- CABINET MODELS ---
-HD2_CabMicIr_1x12FieldCoil         1x12 Field Coil
-HD2_CabMicIr_1x12LACabAlnico       1x12 LA Cab Alnico
-HD2_CabMicIr_2x12DoubleC12NWithPan 2x12 Double C12N (Fender Twin)
-HD2_CabMicIr_2x12AlBlue            2x12 Alnico Blue
-HD2_CabMicIr_4x10TweedDiamondWithPan 4x10 Tweed Diamond
-HD2_CabMicIr_4x12GreenbackWithPan  4x12 Greenback (Marshall)
-HD2_CabMicIr_4x12VintageWithPan    4x12 Vintage 30
-HD2_CabMicIr_4x12SilverWithPan     4x12 Silver
-HD2_CabMicIr_2x12AC30WithPan       2x12 AC30 (Vox)
-HD2_CabMicIr_1x12BoutiqueWithPan   1x12 Boutique
-HD2_CabMicIr_4x12CrunchWithPan     4x12 Crunch
-HD2_CabMicIr_None                  No Cabinet (direct)
-
---- COMPRESSORS / DYNAMICS ---
-HD2_CompressorLAStudioCompMono      LA Studio Comp (LA-2A optical)
-  params: PeakReduction(0-1), Gain(0-1), Mix(0-1)
-
-HD2_CompressorRossCompMono          Ross Compressor (Ross/Dynacomp style)
-  params: Sustain(0-1), Level(0-1), Mix(0-1)
-
-HD2_CompressorGlassCompMono         Glass Compressor (Optical)
-  params: Sustain(0-1), Level(0-1), Attack(0-1), Mix(0-1)
-
-HD2_CompressorPCComp                PC Comp (Pedal compression)
-  params: Threshold(0-1), Ratio(0-1), Attack(0-1), Release(0-1), Gain(0-1)
-
-HD2_DynamicsAutoswell               Auto Swell
-  params: Sens(0-1), Rise(0-1), Level(0-1)
-
-HD2_DynamicsNoise                   Noise Gate
-  params: Threshold(0-1), Decay(0-1)
-
---- DISTORTION / DRIVE / BOOST ---
-HD2_DistMinotaurMono                Minotaur (Klon Centaur)
-  params: Gain(0-1), Treble(0-1), Output(0-1)
-
-HD2_DistPrizeDriveMono              Prize Drive (Prizm style boutique OD)
-  params: Drive(0-1), Spectrum(0-1), Level(0-1)
-
-HD2_DistScreamerMono                Screamer (Tube Screamer TS-808)
-  params: Drive(0-1), Tone(0-1), Output(0-1)
-
-HD2_DistClarityDriveMono            Clarity Drive (Timmy style)
-  params: Drive(0-1), Bass(0-1), Treble(0-1), Level(0-1)
-
-HD2_DistBluesDriverMono             Blues Driver (BD-2)
-  params: Gain(0-1), Tone(0-1), Level(0-1)
-
-HD2_DistKingOfToneMono              King of Tone (KOT clone)
-  params: Drive(0-1), Tone(0-1), Volume(0-1), Mode(0-2)
-
-HD2_DistFuzzFaceMono                Fuzz Face (Silicon)
-  params: Fuzz(0-1), Volume(0-1)
-
-HD2_DistBigMuffMono                 Big Muff (EHX Big Muff)
-  params: Sustain(0-1), Tone(0-1), Volume(0-1)
-
-HD2_DistZenDriveMono                Zen Drive (Hermida Audio)
-  params: Drive(0-1), Tone(0-1), Voice(0-1), Level(0-1)
-
-HD2_DistPlextortionMono             Plextortion (Marshall-in-a-box)
-  params: Gain(0-1), Tone(0-1), Level(0-1)
-
-HD2_DistRatMono                     RAT Distortion
-  params: Distortion(0-1), Filter(0-1), Volume(0-1)
-
-HD2_DistMidDriveMono                Mid Drive (Mid-focused boost)
-  params: Drive(0-1), Tone(0-1), Level(0-1)
-
-HD2_BoostCompMono                   Boost/Comp
-  params: Drive(0-1), Bass(0-1), Treble(0-1), Output(0-1)
-
---- EQ ---
-HX2_EQParametricMono                Parametric EQ
-  params: LowCut(Hz), LowCutEnable(bool), LowCutSlope(0-1),
-          LowEnable(bool), LowFreq(Hz), LowGain(dB), LowQ(0-1),
-          LowShelfEnable(bool), LowShelfFreq(Hz), LowShelfGain(dB),
-          MidEnable(bool), MidFreq(Hz), MidGain(dB), MidQ(0-1),
-          HighEnable(bool), HighFreq(Hz), HighGain(dB), HighQ(0-1),
-          HighShelfEnable(bool), HighShelfFreq(Hz), HighShelfGain(dB),
-          HighCut(Hz), HighCutEnable(bool), HighCutSlope(0-1), Level(dB)
-
-HD2_EQSimpleMono                    Simple EQ (Bass/Mid/Treble/Presence)
-  params: Bass(dB), Mid(dB), Treble(dB), Presence(dB), Level(dB)
-
-HD2_EQGraphic7BandMono              7-Band Graphic EQ
-  params: 100Hz(dB), 200Hz(dB), 400Hz(dB), 800Hz(dB), 1.6kHz(dB), 3.2kHz(dB), 6.4kHz(dB), Level(dB)
-
---- REVERB ---
-HD2_Reverb63SpringStereo            '63 Spring Reverb (Fender spring tank)
-  params: DecayTime(0-1), Mix(0-1), Dwell(0-1), PreDelay(0-1), Level(dB), LowCut(Hz), HighCut(Hz)
-
-HD2_ReverbHallStereo                Hall Reverb
-  params: Decay(0-1), Mix(0-1), PreDelay(0-1), Diffusion(0-1), Level(dB), LowCut(Hz), HighCut(Hz)
-
-HD2_ReverbRoomStereo                Room Reverb
-  params: Decay(0-1), Mix(0-1), PreDelay(0-1), Size(0-1), Level(dB)
-
-HD2_ReverbPlateStereo               Plate Reverb
-  params: Decay(0-1), Mix(0-1), PreDelay(0-1), Diffusion(0-1), Level(dB)
-
-HD2_ReverbShimmerStereo             Shimmer Reverb
-  params: Decay(0-1), Mix(0-1), Pitch(0-1), PreDelay(0-1), Level(dB)
-
-HD2_ReverbCathedralStereo           Cathedral (Large hall)
-  params: Decay(0-1), Mix(0-1), PreDelay(0-1), Size(0-1), Level(dB)
-
-HD2_ReverbGanonHallStereo           Ganon Hall (Algorithmic)
-  params: Decay(0-1), Mix(0-1), PreDelay(0-1), Diffusion(0-1), Level(dB)
-
---- DELAY ---
-HD2_DelayDigitalStereo              Digital Delay
-  params: Time(0-1), Feedback(0-1), Mix(0-1), Treble(0-1), Bass(0-1), Level(dB)
-
-HD2_DelayTapeEchoStereo             Tape Echo (Echoplex style)
-  params: Time(0-1), Feedback(0-1), Mix(0-1), Flutter(0-1), Level(dB)
-
-HD2_DelayAnalogStereo               Analog Delay (Boss DM-2 style)
-  params: Time(0-1), Feedback(0-1), Mix(0-1), Tone(0-1), Level(dB)
-
-HD2_DelaySlapslapStereo             Slapback Delay (short single repeat)
-  params: Time(0-1), Mix(0-1), Level(dB)
-
-HD2_DelayMultiStereo                Multi-Head Delay
-  params: Time(0-1), Feedback(0-1), Mix(0-1), Level(dB)
-
-HD2_DelayReverseStereo              Reverse Delay
-  params: Time(0-1), Feedback(0-1), Mix(0-1), Level(dB)
-
---- MODULATION ---
-HD2_ModChorusBBDStereo              Chorus (BBD analog style)
-  params: Speed(0-1), Depth(0-1), Mix(0-1), Level(dB)
-
-HD2_ModFlangerStereo                Flanger
-  params: Speed(0-1), Depth(0-1), Feedback(0-1), Mix(0-1), Level(dB)
-
-HD2_ModPhaserStereo                 Phaser
-  params: Speed(0-1), Depth(0-1), Feedback(0-1), Mix(0-1), Level(dB)
-
-HD2_ModTremoloStereo                Tremolo
-  params: Speed(0-1), Depth(0-1), Wave(0-1), Mix(0-1), Level(dB)
-
-HD2_ModVibratoCEStereo              Vibrato (CE-style)
-  params: Speed(0-1), Depth(0-1), Level(dB)
-
-HD2_ModRotaryStereo                 Rotary Speaker (Leslie)
-  params: Speed(0-1), Balance(0-1), Horn(0-1), Rotor(0-1), Mix(0-1)
-
-HD2_ModUniVibeMonoToStereo          Uni-Vibe
-  params: Speed(0-1), Depth(0-1), Mix(0-1), Level(dB)
-
---- WAH / FILTER ---
-HD2_WahCrybabyStereo                Cry Baby Wah
-  params: Position(0-1), Level(dB)
-
-HD2_WahVintageStereo                Vintage Wah
-  params: Position(0-1), Freq(0-1), Q(0-1), Level(dB)
-
-HD2_FilterAutoWahStereo             Auto Wah
-  params: Sens(0-1), Q(0-1), Freq(0-1), Mix(0-1), Level(dB)
-
---- PITCH / SYNTH ---
-HD2_PitchShifterStereo              Pitch Shifter
-  params: Shift(semitones, -24 to +24), Mix(0-1), Level(dB)
-
-HD2_PitchHarmonizerStereo           Harmonizer
-  params: Key(0-11), Scale(0-6), Shift(0-1), Mix(0-1), Level(dB)
-
-HD2_PitchOctaverMono                Octaver
-  params: Oct1(0-1), Oct2(0-1), Direct(0-1)
-
-================================================================
 AMP PARAMETER GUIDE
 ================================================================
 
@@ -355,57 +172,86 @@ AGOURA AMP PARAMS (US Double Black / Fender Twin example):
   ZPrePost    0-1    Z (impedance) pre/post
 
 ================================================================
-AMP MODEL CHARACTERISTICS — drive sweet spots per amp
+AMP MODEL CHARACTERISTICS — drive sweet spots (REAL CATALOG amps only)
 ================================================================
 
-Use these as your starting point for "Drive" values. Each amp has a different
-gain structure — Drive 0.5 on a Twin is barely breaking up, but Drive 0.5 on
-a JCM800 is full lead saturation. Pick from the right column for the snapshot
-you're building.
+These are the ACTUAL amps in the firmware (mined from factory presets).
+Drive ranges differ per amp — Drive 0.5 on a Twin is barely breaking up;
+Drive 0.5 on a Revv Ch4 is full lead saturation.
 
-                              CLEAN     EDGE OF       LEAD/FULL
-                              (sparkle) BREAKUP       SATURATION
-  --------------------------------------------------------------
-  US Double Black (Twin)      0.20-0.32 0.55-0.70     0.85-1.0
-  US Deluxe Black             0.15-0.30 0.40-0.55     0.70-0.85
-  US Prince Black (Princeton) 0.10-0.25 0.30-0.45     0.55-0.75
-  Brit JM45 (JTM45)           0.15-0.30 0.45-0.60     0.75-0.90
-  Brit Plexi Lead (Super Lead)0.20-0.35 0.45-0.55     0.65-0.85
-  Brit Plexi Bass             0.15-0.30 0.40-0.50     0.60-0.80
-  Brit Bluesbreaker           0.20-0.35 0.40-0.55     0.65-0.80
-  Brit JM800 (JCM800)         0.10-0.20 0.30-0.45     0.60-0.85   ← high gain
-  Brit Class5 (AC15)          0.20-0.35 0.45-0.60     0.70-0.85
-  Brit Class30 (AC30 Top Boost)0.25-0.40 0.50-0.65    0.75-0.90
-  Matchless DC30              0.20-0.35 0.50-0.65     0.75-0.90
-  Boutique Klon (Dumble ODS)  0.20-0.35 0.40-0.55     0.65-0.85
-  Mesa Dual Rectifier         0.10-0.20 0.30-0.45     0.65-0.95   ← scooped, big
-  Mesa Mark IIC+              0.15-0.25 0.30-0.45     0.65-0.85   ← mid-focused
-  Orange OR120                0.20-0.35 0.40-0.55     0.65-0.85
-  Friedman BE-100             0.10-0.20 0.30-0.45     0.65-0.90   ← modern hi-gain
-  EVH 5150 III                0.05-0.15 0.25-0.40     0.60-0.95   ← biggest gain
-  Diezel Herbert              0.10-0.20 0.30-0.45     0.65-0.90
+                                          CLEAN     EDGE OF       LEAD/FULL
+  Real Model ID                           (sparkle) BREAKUP       SATURATION
+  ------------------------------------------------------------------------
+  Agoura_AmpUSDoubleBlack    (Twin)        0.20-0.32 0.55-0.70   0.85-1.0
+  Agoura_AmpUSLuxeBlack      (Deluxe)      0.15-0.30 0.40-0.55   0.70-0.85
+  Agoura_AmpUSPrincess76     (Princeton)   0.10-0.25 0.30-0.45   0.55-0.75
+  Agoura_AmpUS5WTweed        (Tweed Champ) 0.20-0.40 0.50-0.65   0.75-0.90
+  Agoura_AmpWhoWatt103       (HiWatt)      0.20-0.35 0.45-0.60   0.70-0.85
+  Agoura_AmpEssexTB30CC      (AC30 TB)     0.25-0.40 0.50-0.65   0.75-0.90
+  Agoura_AmpMatchstick30     (Matchless)   0.20-0.35 0.50-0.65   0.75-0.90
+  Agoura_AmpBritPlexi        (Plexi)       0.20-0.35 0.45-0.55   0.65-0.85
+  Agoura_AmpBrit2203MV       (JCM800)      0.10-0.20 0.30-0.45   0.60-0.85   ← british hi-gain
+  Agoura_AmpMandarinPlus200  (Orange Thndvb)0.20-0.35 0.40-0.55  0.65-0.85
+  Agoura_AmpMandarinRockerMk3(Orange Rckvb)0.15-0.30 0.40-0.55   0.65-0.85
+  Agoura_AmpRevvCh3Purple    (Revv Gen7 ch3)0.15-0.25 0.30-0.45  0.55-0.75   ← modern crunch
+  Agoura_AmpRevvCh4Red       (Revv Gen7 ch4)0.10-0.20 0.25-0.40  0.50-0.80   ← MODERN HI-GAIN / MELODEATH
+  Agoura_AmpEVPanamaBlue     (Panama clean)0.15-0.30 0.30-0.45   0.55-0.75
+  Agoura_AmpEVPanamaRed      (Panama hi)   0.10-0.20 0.25-0.40   0.55-0.85   ← rock/metal
+  Agoura_AmpGermanXtraBlue   (Diezel-ish)  0.15-0.25 0.30-0.45   0.55-0.80
+  Agoura_AmpGermanXtraRed    (Diezel-ish)  0.10-0.20 0.25-0.40   0.55-0.85   ← djent/extreme metal
+  Agoura_AmpSolid100         (Solid State) 0.15-0.40 0.50-0.65   0.75-0.90   ← neutral
+  HD2_AmpJazzRivet120        (Jazz Chorus) 0.10-0.30 0.45-0.60   0.70-0.85   ← clean jazz
+  HD2_AmpDerailedIngrid      (Bogner-ish)  0.10-0.20 0.30-0.45   0.55-0.85   ← rock hi-gain
+  HD2_AmpGSG100              (Soldano-ish) 0.10-0.20 0.30-0.45   0.55-0.85   ← classic hi-gain
+  HD2_AmpSoloLeadOD          (hi-gain OD)  0.15-0.25 0.35-0.50   0.60-0.85
+  HD2_AmpSoloLeadCrunch      (crunch)      0.15-0.30 0.40-0.55   0.60-0.80
+  HD2_AmpSoloLeadClean       (clean)       0.15-0.30 0.40-0.55   0.65-0.80
+  HD2_AmpUSSuperVib          (Vibrolux)    0.20-0.35 0.40-0.55   0.65-0.80
+  HD2_AmpLine6Clarity        (clean L6)    0.10-0.30 0.40-0.55   0.65-0.80
+  HD2_AmpBusyOneJump         (Vox-style)   0.20-0.35 0.45-0.60   0.70-0.85
+  HD2_AmpMatchstickCh1       (Matchless)   0.20-0.35 0.45-0.60   0.70-0.85
+  HD2_AmpLine6Badonk         (custom)      0.20-0.35 0.45-0.60   0.70-0.85
+  HD2_AmpWoodyBlue           (acoustic)    0.10-0.25 0.30-0.45   —
+  Agoura_AmpAmpegSVT, Agoura_AmpAmpegB15NF66, Agoura_AmpUSDripBass,
+  Agoura_AmpBritMegaBass, Agoura_AmpAgua751, HD2_AmpSVT4Pro      → BASS amps
 
-CHARACTER NOTES:
-- Twin/Deluxe: scoop slightly for chime (Mid 0.45-0.55, Treble 0.65-0.75).
-  Bright switch ON for country/clean snap, OFF for jazz/warmth.
-- AC30/AC15: high Treble (0.7+) is the chime. Don't bury Mid (~0.5+).
-- JCM800: scooped EQ is wrong — keep Mid 0.55-0.70 for that classic British
-  midrange bark. Bass 0.4-0.55, Treble 0.55-0.7.
-- Mesa Rectifier: scooped EQ IS the sound — Bass 0.65+, Mid 0.25-0.35,
-  Treble 0.55-0.7. Tight low end on V30 cab.
-- 5150/Friedman: tight gate critical. Always pair with noise gate. Bass
-  0.4-0.6 (anything more = mud), Mid 0.5-0.7, Treble 0.5-0.7.
-- Matchless/AC30: very dynamic — touch sensitivity is the point. Avoid
-  excessive compression. Master 0.65+ for power-amp interaction.
-- Klon (Dumble ODS): smooth, vocal mids. Mid 0.6-0.75 for the singing
-  sustain, Treble moderate (0.5-0.65), Bass tight (0.4-0.5).
+CHARACTER NOTES (real catalog amps only):
+- Twin/USDoubleBlack: high headroom, scoop slightly for chime (Mid 0.45-0.55,
+  Treble 0.65-0.75). Bright ON for country/clean snap.
+- USLuxeBlack (Deluxe): breaks up earlier than Twin, warm.
+- BritPlexi: classic British rock — Bass 0.4-0.55, Mid 0.55-0.7 (NOT scooped),
+  Treble 0.55-0.7. Sweet spot for AC/DC, Hendrix, Zeppelin.
+- Brit2203MV (JCM800): more gain than Plexi. Mid 0.55-0.70 (British bark),
+  Treble 0.6-0.75. Hard rock / 80s metal foundation.
+- EssexTB30CC (AC30): chime amp — high Treble (0.7+), Mid 0.5+, Bass 0.4-0.55.
+  Top Boost on (Bright=1).
+- Matchstick30 (Matchless): dynamic, touch-sensitive. Master 0.65+ for power
+  amp interaction. Mid 0.55-0.70.
+- RevvCh3Purple: modern crunch (rock rhythm). Mid 0.55-0.7, tight bass 0.4-0.55.
+- RevvCh4Red: MODERN HI-GAIN — best for melodic death metal, modern metal,
+  djent. Bass 0.4-0.55 (tight), Mid 0.55-0.7 (don't scoop), Treble 0.55-0.7,
+  Presence 0.65-0.8 for cut. ALWAYS pair with noise gate.
+- EVPanamaRed / GermanXtraRed: similar to Revv Ch4 but heavier. Mid 0.5-0.65.
+- MandarinRockerMk3 (Orange): stoner rock / Sabbath territory. Mid 0.6-0.75,
+  Bass 0.55-0.7 (Orange amps love big low end).
+- JazzRivet120: solid-state Jazz Chorus. Stays clean even at high Drive.
+  Pair with chorus/clean FX, not drives.
+
+DRIVE INTERACTION WITH PEDALS (CRITICAL):
+- When a Tube Screamer / Klon / boost is engaged in front of an amp, LOWER
+  the amp's Drive by ~0.15-0.20. The pedal compresses, tightens, and pushes
+  the amp into saturation — the amp shouldn't have to do all the work.
+- Example: Revv Ch4 Red without TS = Drive 0.50 for lead. With TS engaged
+  on the lead snapshot = drop amp Drive to 0.30-0.35, set TS Drive 0.15,
+  TS Level 0.7-0.8.
+- Same applies to clean amps: a Klon-style boost into a Twin = Twin Drive
+  ~0.30 not 0.55. The pedal does the breakup.
 
 POWER AMP / FEEL PARAMS (when in doubt, leave at 0.5):
-- Sag higher = looser, more compressed feel (good for blues, country)
-- Sag lower = tighter, more modern (good for high-gain rhythm)
-- Ripple higher = more low-end bloom (vintage feel)
-- Master/MasterVol: Master is preamp output level; MasterVol is power amp.
-  For lead boost in snapshots, raise Master 0.05-0.15 above the rhythm value.
+- Sag higher = looser, more compressed (blues, country, vintage)
+- Sag lower = tighter, more modern (high-gain rhythm, djent)
+- Ripple higher = low-end bloom (vintage feel)
+- For lead boost: raise Master 0.05-0.15 above the rhythm snapshot value.
 
 ================================================================
 CAB MIC PARAMETER GUIDE
@@ -594,95 +440,6 @@ RULES:
 - Output ONLY the JSON — no markdown fences, no commentary.
 `;
 
-// Model ID quick reference for programmatic use
-export const HELIX_MODELS = {
-  inputs: {
-    guitar: "P35_InputInst1",
-    guitar2: "P35_InputInst2",
-    mic: "P35_InputMic",
-    aux: "P35_InputAux",
-    none: "P35_InputNone",
-  },
-  outputs: {
-    path1: "P35_OutputPath2A",
-    matrix: "P35_OutputMatrix",
-  },
-  amps: {
-    fenderTwin: "Agoura_AmpUSDoubleBlack",
-    fenderDeluxe: "Agoura_AmpUSDeluxeBlack",
-    fenderPrinceton: "Agoura_AmpUSPrinceBlack",
-    marshallPlexi: "Agoura_AmpBritPlexiLead",
-    marshallJCM800: "Agoura_AmpBritJM800",
-    marshallJTM45: "Agoura_AmpBritJM45",
-    voxAC30: "Agoura_AmpBritClass30",
-    voxAC15: "Agoura_AmpBritClass5",
-    mesaDual: "Agoura_AmpMesaDual",
-    mesaMkIIC: "Agoura_AmpMesaMkIIC",
-    orange: "Agoura_AmpOrangeOR120",
-    friedman: "Agoura_AmpFriedmanBE100",
-    evh5150: "Agoura_AmpEVH5150III",
-    matchless: "Agoura_AmpMatchlessDC30",
-    dumble: "Agoura_AmpBoutiqueKlon",
-  },
-  cabs: {
-    twin2x12: "HD2_CabMicIr_2x12DoubleC12NWithPan",
-    vox2x12: "HD2_CabMicIr_2x12AC30WithPan",
-    alnico2x12: "HD2_CabMicIr_2x12AlBlue",
-    greenback4x12: "HD2_CabMicIr_4x12GreenbackWithPan",
-    vintage4x12: "HD2_CabMicIr_4x12VintageWithPan",
-    tweed4x10: "HD2_CabMicIr_4x10TweedDiamondWithPan",
-    boutique1x12: "HD2_CabMicIr_1x12BoutiqueWithPan",
-    none: "HD2_CabMicIr_None",
-  },
-  compressors: {
-    laStudio: "HD2_CompressorLAStudioCompMono",
-    ross: "HD2_CompressorRossCompMono",
-    glass: "HD2_CompressorGlassCompMono",
-  },
-  drives: {
-    minotaur: "HD2_DistMinotaurMono",
-    screamer: "HD2_DistScreamerMono",
-    prizeDrive: "HD2_DistPrizeDriveMono",
-    bluesDriver: "HD2_DistBluesDriverMono",
-    rat: "HD2_DistRatMono",
-    bigMuff: "HD2_DistBigMuffMono",
-    fuzzFace: "HD2_DistFuzzFaceMono",
-    kingOfTone: "HD2_DistKingOfToneMono",
-    zenDrive: "HD2_DistZenDriveMono",
-    plextortion: "HD2_DistPlextortionMono",
-  },
-  eq: {
-    parametric: "HX2_EQParametricMono",
-    simple: "HD2_EQSimpleMono",
-    graphic7: "HD2_EQGraphic7BandMono",
-  },
-  reverbs: {
-    spring63: "HD2_Reverb63SpringStereo",
-    hall: "HD2_ReverbHallStereo",
-    room: "HD2_ReverbRoomStereo",
-    plate: "HD2_ReverbPlateStereo",
-    shimmer: "HD2_ReverbShimmerStereo",
-    cathedral: "HD2_ReverbCathedralStereo",
-  },
-  delays: {
-    digital: "HD2_DelayDigitalStereo",
-    tape: "HD2_DelayTapeEchoStereo",
-    analog: "HD2_DelayAnalogStereo",
-    slapback: "HD2_DelaySlapslapStereo",
-    reverse: "HD2_DelayReverseStereo",
-  },
-  modulation: {
-    chorus: "HD2_ModChorusBBDStereo",
-    flanger: "HD2_ModFlangerStereo",
-    phaser: "HD2_ModPhaserStereo",
-    tremolo: "HD2_ModTremoloStereo",
-    vibrato: "HD2_ModVibratoCEStereo",
-    rotary: "HD2_ModRotaryStereo",
-    univibe: "HD2_ModUniVibeMonoToStereo",
-  },
-  wah: {
-    crybaby: "HD2_WahCrybabyStereo",
-    vintage: "HD2_WahVintageStereo",
-    autoWah: "HD2_FilterAutoWahStereo",
-  },
-};
+// Programmatic model lookup — sourced from the real catalog (no
+// hand-curated map; helix-catalog.json is the single source of truth).
+export const HELIX_CATALOG = catalog;
