@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const cleaned = imageBase64.replace(/^data:image\/[a-z]+;base64,/, "");
 
     const message = await client.messages.create({
-      model: "claude-opus-4-7",
+      model: "claude-sonnet-4-6",
       max_tokens: 2048,
       system: SYSTEM_PROMPT,
       messages: [

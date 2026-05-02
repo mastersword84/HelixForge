@@ -1,0 +1,189 @@
+# HelixForge — Session Handoff Note
+_Written: 2026-05-01 — read this at the start of every new session_
+
+---
+
+## What HelixForge Is
+
+AI-powered Line 6 Helix Stadium preset generator. Three modes:
+- **Describe** — type a tone description, get a `.hsp` preset
+- **Cover Song** — enter song + artist, get snapshots mapped to song sections + downloadable MIDI automation file
+- **MIDI Only** — skip preset generation, just get the MIDI track for snapshot switching
+
+Stack: Next.js 16 App Router, TypeScript, Tailwind v4, Claude API (Sonnet 4.6), Supabase (reusing Coyote Road project).
+
+---
+
+## Architecture: Factory-Base Approach
+
+**Why we're NOT generating raw JSON from scratch:**  
+Raw AI-generated .hsp files brick the Helix Stadium on import. helixtones.com (competitor, uses Gemini) has the same problem — user tested one of their presets and it also bricked their Stadium. This is not a Claude vs Gemini issue. It's a structural problem: AI doesn't know all the required harness fields, block scaffolding, etc.
+
+**The solution (already built):**  
+1. Pick a real Line 6 factory preset as the base (from `/samples/` directory)
+2. Claude only tweaks existing param values and snapshot bypass states — no model swaps, no new blocks
+3. `applyDecisionsToBase()` in `lib/preset-template.ts` applies those tweaks safely
+4. Result: skeleton is 100% from Line 6, Claude only nudges knobs
+
+Claude returns `{ decisions: SimpleDecisions, uiMeta: {...} }` — NOT a full .hsp.  
+The route in `app/api/forge/route.ts` applies decisions to the factory base and serializes.
+
+---
+
+## CRITICAL BUGS TO FIX NEXT SESSION (in order)
+
+### 1. `samples/` directory is missing from git — forge is currently broken
+**The problem:**  
+`lib/base-preset.ts` loads factory .hsp files from `process.cwd()/samples/`.  
+`/samples/` is in `.gitignore` — it only exists on one machine (wherever the presets were mined).  
+On any other machine or Vercel deployment, `selectBasePreset()` returns null and every forge request returns a 500 error.
+
+**The fix:**  
+Bake the factory preset content directly into a committed data file instead of reading loose .hsp files from disk. Two options:
+- **Option A**: Remove `/samples/` from `.gitignore` and commit the .hsp files (copyright risk — they're Line 6 IP)
+- **Option B**: Embed the parsed JSON content of each preset into a new `lib/preset-data.json` file that IS committed. `loadPresetByFile()` in `base-preset.ts` reads from this JSON instead of the filesystem. This is cleaner and works on Vercel.
+
+**Go with Option B.** The mining scripts in `/scripts/` already parsed and cataloged these files — we just need to also embed their parsed JSON content.
+
+---
+
+### 2. Factory presets may have a lock flag that causes Stadium to reject import
+**The theory (user's insight — very plausible):**  
+Factory presets have a lock icon in HX Edit and on the Stadium UI. This lock is likely stored as a field in the preset's `meta` object (e.g. `meta.protected`, `meta.locked`, `meta.type: "factory"`). When we clone a factory preset and the user tries to import it into a user slot, Stadium may reject it because it sees the lock flag.
+
+**Current state:**  
+`applyDecisionsToBase()` only touches `meta.name` and `meta.info`. Any lock field gets carried over from the factory preset unchanged.
+
+**The fix:**  
+Once we can see an actual `.hsp` file (need the `samples/` issue fixed first), open one in a text editor and look at the `meta` block for fields like `protected`, `locked`, `type`, `readonly`. Then add a line to `applyDecisionsToBase()` to clear/reset that field before returning.
+
+**To verify:** On the physical Stadium, load a factory preset that came with the device. Does it have a lock icon? If yes, export that preset via HX Edit as .hsp, open it in a text editor, find the lock field.
+
+---
+
+### 3. Model switch: already done this session
+`app/api/forge/route.ts` line 268 was `claude-opus-4-7` — switched to `claude-sonnet-4-6`.  
+Sonnet is 5x cheaper and fast enough for this structured JSON task.
+
+---
+
+## What Has Been Tested / What Hasn't
+
+| Thing | Status |
+|---|---|
+| Forge UI (describe/cover/MIDI modes) | Built, untested on broken samples |
+| Claude → SimpleDecisions JSON format | Works in theory, not verified end-to-end |
+| `applyDecisionsToBase()` logic | Built, not tested with real .hsp import |
+| MIDI file generation | Built, likely works |
+| Supabase catalog save/load | Tested and working |
+| Physical Stadium import | **NEVER TESTED** |
+| helixtones.com presets on Stadium | **TESTED — also bricks Stadium** |
+
+---
+
+## Competitor Intel
+
+**helixtones.com** — direct competitor, built by one person using Google Gemini. Supports Stadium. User tested a generated preset → it bricked their Stadium. Same structural problem as raw generation. Their presets don't work.
+
+HelixForge differentiators (when working):
+- Cover song mode with section-aware snapshots
+- MIDI automation file download
+- Catalog / preset saving
+- Factory-base architecture (theoretically safer)
+
+---
+
+## Key Files
+
+| File | What it does |
+|---|---|
+| `app/api/forge/route.ts` | Main API route — midiOnly mode, describe mode, cover mode |
+| `lib/base-preset.ts` | `selectBasePreset()`, `describeBaseBlocks()`, `hasUsableSignalChain()` |
+| `lib/preset-template.ts` | `applyDecisionsToBase()` — the safe applier (SAFE MODE only) |
+| `lib/song-lookup.ts` | Spotify + lrclib + Claude → song sections with timestamps |
+| `lib/preset-library.json` | 67 tagged factory presets (metadata only, no .hsp content) |
+| `samples/` | **MISSING FROM GIT** — actual .hsp files live here |
+| `scripts/mine-presets.mjs` | How the presets were originally mined |
+
+---
+
+## When You Have the Physical Stadium
+
+Do this test first before anything else:
+1. Take any .hsp file from `samples/` — don't change a single byte
+2. Load it on Stadium
+3. If it loads: our serialization is clean, the lock flag is the only issue
+4. If it doesn't: something in the round-trip parse/serialize is corrupting the file
+
+This one test tells us everything about where the real problem is.
+
+---
+
+## Infrastructure Note
+
+The dev server runs on port 3000. Check if it's already running before starting a new one — a second instance tries port 3010 and may conflict.
+
+Supabase project: `bqscdjruevzmmzxhrflr.supabase.co` (shared with Coyote Road).  
+Table: `helixforge_presets`
+
+---
+
+## Audio → Tone Matching (once brick issue is fixed)
+
+`lib/audio-analysis.ts` already does the client-side analysis. Once the samples/ fix lands, the full pipeline is:
+
+1. User uploads isolated guitar stem (Moises stem separation recommended)
+2. `analyzeAudioFile()` runs client-side → spectral fingerprint:
+   - Bass/mid/treble energy balance
+   - Harmonic distortion ratio → drive estimate
+   - Section boundaries (energy transitions) → snapshot timestamps
+   - Reverb/delay presence detection
+3. That fingerprint goes into Claude's prompt alongside the factory base layout
+4. Claude sets amp EQ/drive params to match the spectral character
+5. Turns reverb/delay blocks on or off based on detection
+6. Maps section timestamps to named snapshots
+7. `applyDecisionsToBase()` writes those values into the factory preset
+
+**What it can match:** EQ shape, gain level, reverb/delay presence, per-section tone changes.  
+**What it can't match:** the exact amp model someone else used (not needed — factory-base doesn't swap models).
+
+User has Moises for stem separation → clean isolated guitar signal → ideal input for analysis.
+
+---
+
+## Direct Stadium Connection (future feature — big differentiator)
+
+Goal: "Send to Helix" button in the forge UI — no file download, no import step, one click pushes preset to the physical device.
+
+**Path 1 — Web MIDI SysEx (best option, no install)**  
+Chrome/Edge have Web MIDI API. Stadium appears as a USB MIDI device. Line 6 SysEx manufacturer ID is `0x00 0x01 0x0C`. Community has partially reverse-engineered preset dump/restore SysEx commands. If those commands are documented enough, we can push a preset directly from the browser. Research needed: look for hx-tools, helix-sysex, or similar community projects on GitHub.
+
+**Path 2 — Companion local app (most practical)**  
+Small Tauri app (Rust, tiny binary) runs as a local service. HelixForge web POSTs the preset JSON to `localhost:PORT`, app pushes to Stadium via USB/MIDI or writes to a folder HX Edit watches. Install once, invisible after that.
+
+**Path 3 — WebUSB (most powerful, most work)**  
+Direct USB endpoint access from the browser. How a full browser-based HX Edit would work. Significant reverse engineering required.
+
+**Suggested order:** Fix brick issue → verify a preset loads → research SysEx community docs → attempt Web MIDI push → fall back to Tauri companion if SysEx undocumented.
+
+This feature would make HelixForge the only tool that goes describe tone → one click → on your rig, all in a browser.
+
+**Why SysEx likely eliminates bricking entirely:**  
+Current file import = sneaking in through a back window. We're blind to what Stadium expects, Stadium is blind to what we sent, parser freaks out → brick.  
+SysEx = knocking on the front door. Stadium already speaks this protocol (HX Edit uses it daily). Active two-way handshake — device confirms receipt, rejects gracefully if something is wrong. MIDI stacks are designed to ignore bad messages, not crash. Worst case with SysEx = "nothing happened." Not brick. This makes the direct connection not just a feature but potentially the complete solution to the bricking problem — bypasses the file importer entirely.
+
+**SysEx unlocks the full catalog — the original vision:**  
+With file import we were stuck in factory-base mode: clone a preset, tweak knobs, can't swap amps or add FX. That was a safe workaround for a broken pipeline.  
+
+With SysEx + the validated `lib/helix-catalog.json` (100+ amps, all cabs, all FX with correct model IDs):
+- Claude picks the RIGHT amp for the tone — not whatever happened to be in the base preset
+- Claude builds the RIGHT FX chain — drives, delays, reverb, modulation — from scratch
+- Device receives it through the SysEx path, validates model IDs against its own firmware catalog
+- If a model ID is wrong → device rejects the message, nothing crashes
+- If model IDs are valid → preset loads with full creative freedom
+
+This is the original vision restored: describe any tone → Claude builds the ideal signal chain from the full catalog → SysEx handshake → on your rig. No factory-base limitations. No bricking. The two-step plan:
+1. Get SysEx handshake working
+2. Switch Claude back to full preset generation (using validated catalog IDs)
+
+helixtones.com generates raw JSON and ships broken files. HelixForge speaks the device's native language. That's the real differentiator.

@@ -147,7 +147,7 @@ ${syncedLyrics}
 Identify the sections.`;
 
   const message = await client.messages.create({
-    model: "claude-opus-4-7",
+    model: "claude-sonnet-4-6",
     max_tokens: 2048,
     system: SECTION_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
