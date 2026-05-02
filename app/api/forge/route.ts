@@ -21,15 +21,54 @@ function parseUserMarkers(text: string): ParsedMarker[] {
   for (const rawLine of text.split(/\r?\n/)) {
     const line = rawLine.trim();
     if (!line) continue;
-    // Capture an optional minutes:seconds(.frac) or pure seconds, then the rest as name
-    const match = line.match(/^(?:(\d+):)?(\d+)(?:\.(\d+))?\s*[,\s]\s*(.+)$/);
-    if (!match) continue;
-    const min = match[1] ? parseInt(match[1], 10) : 0;
-    const sec = parseInt(match[2], 10);
-    const frac = match[3] ? parseFloat("0." + match[3]) : 0;
-    const seconds = min * 60 + sec + frac;
-    const name = match[4].trim();
-    if (name && Number.isFinite(seconds) && seconds >= 0) {
+
+    // Tolerant parser. Time format can be:
+    //   H:MM:SS:MS  (DAW SMPTE-style, colon before ms — convert to H:MM:SS.MS)
+    //   H:MM:SS.MS
+    //   H:MM:SS
+    //   M:SS.MS
+    //   M:SS
+    //   SS.MS
+    //   SS
+    // Followed by optional space/comma/tab then the rest = name.
+    //
+    // Strategy: pull all leading "digit-or-separator" tokens, classify by
+    // count, then take the trailing string as name.
+    const m = line.match(/^([\d:.]+)\s*[,\s]\s*(.+)$/);
+    if (!m) continue;
+
+    const timeRaw = m[1];
+    const name = m[2].trim();
+    if (!name) continue;
+
+    // Split on either : or .  but remember we may have one decimal frac at the end
+    // Strategy: replace last `:` with `.` if there's already a `:` before it AND
+    // no `.` exists yet (handles SMPTE H:MM:SS:MS form).
+    let normalized = timeRaw;
+    if (!timeRaw.includes(".") && (timeRaw.match(/:/g) ?? []).length === 3) {
+      const idx = timeRaw.lastIndexOf(":");
+      normalized = timeRaw.slice(0, idx) + "." + timeRaw.slice(idx + 1);
+    }
+
+    const parts = normalized.split(":");
+    let seconds: number | null = null;
+    if (parts.length === 1) {
+      const n = parseFloat(parts[0]);
+      if (Number.isFinite(n) && n >= 0) seconds = n;
+    } else if (parts.length === 2) {
+      const min = parseInt(parts[0], 10);
+      const sec = parseFloat(parts[1]);
+      if (Number.isFinite(min) && Number.isFinite(sec)) seconds = min * 60 + sec;
+    } else if (parts.length === 3) {
+      const h = parseInt(parts[0], 10);
+      const min = parseInt(parts[1], 10);
+      const sec = parseFloat(parts[2]);
+      if (Number.isFinite(h) && Number.isFinite(min) && Number.isFinite(sec)) {
+        seconds = h * 3600 + min * 60 + sec;
+      }
+    }
+
+    if (seconds !== null && Number.isFinite(seconds) && seconds >= 0) {
       out.push({ startSec: seconds, name });
     }
   }
@@ -37,8 +76,10 @@ function parseUserMarkers(text: string): ParsedMarker[] {
 }
 
 function secondsToTimestamp(seconds: number): string {
-  const m = Math.floor(seconds / 60);
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
+  if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 

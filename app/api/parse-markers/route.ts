@@ -10,19 +10,26 @@ M:SS NAME
 or
 M:SS.SS NAME
 or
-H:MM:SS NAME
+H:MM:SS NAME           (PRESERVE HOURS — do not fold into minutes if hours are present in the screenshot)
+or
+H:MM:SS.SS NAME
 
 Examples:
 0:08 INTRO
 4:38.5 VERSE 1
 1:02:14 BRIDGE
+2:34:22.500 OUTRO
 
 Rules:
 - Use the marker's TIME POSITION (start time), not bar/beat numbers if both are visible.
 - Use the marker's DESCRIPTION/NAME (not the ID number).
 - One marker per line. Preserve order from the screenshot.
 - Drop columns like "Length", "Type", "ID" — only emit time + name.
-- If the time is shown as 0:00:08:000 or H:MM:SS:MS, convert to M:SS or M:SS.fraction.
+- IMPORTANT: if the screenshot shows hours (e.g. 1:23:45.000 or 0:00:08:000),
+  PRESERVE the hours field — output as H:MM:SS or H:MM:SS.SS. Do NOT convert
+  the hours to minutes (i.e. don't turn 1:23:45 into 83:45).
+- If the time is shown as H:MM:SS:MS (colon separator before milliseconds),
+  convert to H:MM:SS.MMM (dot separator before fractional seconds).
 - If the marker has no description, use "SECTION N" where N is the row index (1-based).
 - Output ONLY the marker lines, no headers, no commentary, no markdown fences.`;
 
