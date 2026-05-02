@@ -853,6 +853,13 @@ export default function ForgePage() {
   // Preset address for the song's MIDI Program Change event (Option B)
   const [presetSlot, setPresetSlot] = useState("");      // e.g. "1A", "12C", "32D"
   const [setlistBank, setSetlistBank] = useState("1");   // CC32 value (1-4 = User Groups, 5+ = custom setlists)
+  // User-provided markers (overrides lookup/audio detection if non-empty)
+  const [markersText, setMarkersText] = useState("");
+  // Song-start offset in the user's DAW project (e.g. "4:30") — subtracted from all markers
+  const [songOffsetText, setSongOffsetText] = useState("");
+  // Screenshot → markers OCR
+  const [parsingScreenshot, setParsingScreenshot] = useState(false);
+  const [screenshotError, setScreenshotError] = useState("");
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [status, setStatus] = useState<ForgeStatus>("idle");
@@ -861,6 +868,36 @@ export default function ForgePage() {
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverFileInputRef = useRef<HTMLInputElement>(null);
+  const screenshotInputRef = useRef<HTMLInputElement>(null);
+
+  const handleScreenshotFile = useCallback(async (file: File) => {
+    setScreenshotError("");
+    setParsingScreenshot(true);
+    try {
+      const reader = new FileReader();
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+
+      const res = await fetch("/api/parse-markers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64: dataUrl, mediaType: file.type || "image/png" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Marker parsing failed");
+
+      const newMarkers = data.markersText as string;
+      // Append to existing markers if user already typed some — otherwise replace
+      setMarkersText((prev) => (prev.trim() ? prev.trimEnd() + "\n" + newMarkers : newMarkers));
+    } catch (e) {
+      setScreenshotError(e instanceof Error ? e.message : "Couldn't parse screenshot");
+    } finally {
+      setParsingScreenshot(false);
+    }
+  }, []);
 
   const canForge =
     (mode === "describe" && description.trim().length > 0) ||
@@ -876,14 +913,30 @@ export default function ForgePage() {
     setAnalysisResult(null);
 
     let audioAnalysis: string | undefined;
+    let audioSections: Array<{ startSec: number; endSec: number; energyLevel: string }> | undefined;
+    let audioDurationSec: number | undefined;
+    let audioSongStartSec: number | undefined;
 
-    // Step 1: analyze audio if cover + file uploaded (skip in midiOnly mode)
-    if (!midiOnly && mode === "cover" && coverAudioFile) {
+    // Analyze audio if cover + file uploaded. Run for BOTH full-forge and
+    // midi-only modes. In midi-only the audio gives us the preroll length
+    // and total duration; lookup gives us the section structure; we scale
+    // and offset lookup timestamps to map cleanly onto the user's track.
+    if (mode === "cover" && coverAudioFile) {
       setStatus("analyzing");
       try {
         const result = await analyzeAudioFile(coverAudioFile);
         setAnalysisResult(result);
         audioAnalysis = result.summary;
+        audioSections = result.sections.map((s) => ({
+          startSec: s.startSec,
+          endSec: s.endSec,
+          energyLevel: s.energyLevel,
+        }));
+        audioDurationSec = result.durationSec;
+        // Find first non-quiet section — that's where the actual song begins
+        // after click preroll/silence.
+        const firstReal = result.sections.find((s) => s.energyLevel !== "quiet");
+        audioSongStartSec = firstReal?.startSec ?? 0;
       } catch (e) {
         console.warn("Audio analysis failed, continuing without it:", e);
       }
@@ -894,7 +947,7 @@ export default function ForgePage() {
     try {
       const body =
         mode === "cover"
-          ? { mode: "cover", songTitle, artist, notes: coverNotes, audioAnalysis, midiOnly, presetSlot, setlistBank }
+          ? { mode: "cover", songTitle, artist, notes: coverNotes, audioAnalysis, audioSections, audioDurationSec, audioSongStartSec, midiOnly, presetSlot, setlistBank, markersText, songOffsetText }
           : { mode: "describe", description: description || `Tone from audio: ${audioFile?.name}`, presetName };
 
       const res = await fetch("/api/forge", {
@@ -911,7 +964,7 @@ export default function ForgePage() {
       setError(e instanceof Error ? e.message : "Something went wrong");
       setStatus("error");
     }
-  }, [canForge, isActive, mode, description, presetName, songTitle, artist, coverNotes, coverAudioFile, audioFile, presetSlot, setlistBank]);
+  }, [canForge, isActive, mode, description, presetName, songTitle, artist, coverNotes, coverAudioFile, audioFile, presetSlot, setlistBank, markersText, songOffsetText]);
 
   const reset = () => {
     setStatus("idle");
@@ -1032,6 +1085,88 @@ export default function ForgePage() {
               <p className="text-xs font-mono -mt-1" style={{ color: "var(--forge-faint)" }}>
                 Pick the slot where this song&apos;s preset lives on Stadium → MIDI auto-loads it before the song. Leave as &quot;manual&quot; if you switch presets yourself.
               </p>
+
+              {/* Song offset — for multi-song projects */}
+              <div>
+                <Field
+                  label="SONG STARTS AT (optional)"
+                  value={songOffsetText}
+                  onChange={setSongOffsetText}
+                  placeholder="4:30"
+                />
+                <p className="text-xs font-mono mt-1" style={{ color: "var(--forge-faint)" }}>
+                  If your Cubase project has multiple songs, type when this song STARTS in the project (e.g. <code>4:30</code>). HelixForge subtracts that from every marker so the .mid is 0-based. Drop the .mid at the song&apos;s start position. Leave blank if the song is at project 0.
+                </p>
+              </div>
+
+              {/* Manual markers — overrides auto-detection when provided */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-mono tracking-widest" style={{ color: "var(--forge-faint)" }}>
+                    MARKERS <span style={{ color: "var(--forge-arc)" }}>← paste/type/screenshot from your DAW</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => screenshotInputRef.current?.click()}
+                    disabled={parsingScreenshot}
+                    className="text-xs font-mono px-3 py-1.5 rounded transition-all"
+                    style={{
+                      background: "transparent",
+                      border: "1px solid var(--forge-arc)",
+                      color: parsingScreenshot ? "var(--forge-faint)" : "var(--forge-arc)",
+                      cursor: parsingScreenshot ? "wait" : "pointer",
+                    }}
+                    onMouseEnter={(e) => { if (!parsingScreenshot) (e.currentTarget as HTMLElement).style.background = "rgba(74,240,255,0.08)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                    title="Upload a screenshot of your DAW Marker Window — Claude reads it and fills the markers below"
+                  >
+                    {parsingScreenshot ? "📸 reading…" : "📸 upload screenshot"}
+                  </button>
+                  <input
+                    ref={screenshotInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleScreenshotFile(f);
+                      if (e.target) e.target.value = "";
+                    }}
+                  />
+                </div>
+                <textarea
+                  value={markersText}
+                  onChange={(e) => setMarkersText(e.target.value)}
+                  onPaste={(e) => {
+                    // If the user pastes an image (Ctrl+V from clipboard after a Snip/Print Screen),
+                    // intercept it and run through the OCR endpoint instead.
+                    const items = e.clipboardData?.items;
+                    if (!items) return;
+                    for (const it of items) {
+                      if (it.type.startsWith("image/")) {
+                        e.preventDefault();
+                        const blob = it.getAsFile();
+                        if (blob) handleScreenshotFile(blob);
+                        return;
+                      }
+                    }
+                  }}
+                  placeholder={"4:30 INTRO\n4:38 VERSE 1\n4:54 CHORUS\n5:18 VERSE 2\n5:42 SOLO\n6:06 CHORUS\n6:30 OUTRO\n\n— or hit 📸 to upload a screenshot of your DAW Marker Window —"}
+                  rows={7}
+                  className="w-full px-4 py-3 rounded text-sm font-mono outline-none transition-all resize-y"
+                  style={{ background: "var(--forge-iron)", border: "1px solid var(--forge-border)", color: "var(--forge-text)" }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "var(--forge-ember)")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "var(--forge-border)")}
+                />
+                {screenshotError && (
+                  <p className="text-xs font-mono mt-1" style={{ color: "#ef4444" }}>
+                    {screenshotError}
+                  </p>
+                )}
+                <p className="text-xs font-mono mt-1" style={{ color: "var(--forge-faint)" }}>
+                  One per line: <code>M:SS NAME</code> or <code>M:SS.SS NAME</code>. Type, paste from clipboard (text or screenshot), or hit 📸 to upload an image of the marker window. Absolute Cubase timestamps — HelixForge subtracts the song-start offset above.
+                </p>
+              </div>
 
               {/* Audio upload — the real thing */}
               <div>

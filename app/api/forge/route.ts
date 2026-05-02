@@ -7,6 +7,70 @@ import { selectBasePreset, describeBaseBlocks, BasePresetSelection } from "@/lib
 
 const client = new Anthropic();
 
+// ── Marker parsing ─────────────────────────────────────────────
+// Accept lines in formats like:
+//   0:08 VERSE 1
+//   0:08.5 VERSE 1
+//   8 INTRO
+//   0:08,VERSE 1
+// Returns sorted ascending by time. Anything unparseable is silently skipped.
+interface ParsedMarker { startSec: number; name: string; }
+
+function parseUserMarkers(text: string): ParsedMarker[] {
+  const out: ParsedMarker[] = [];
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    // Capture an optional minutes:seconds(.frac) or pure seconds, then the rest as name
+    const match = line.match(/^(?:(\d+):)?(\d+)(?:\.(\d+))?\s*[,\s]\s*(.+)$/);
+    if (!match) continue;
+    const min = match[1] ? parseInt(match[1], 10) : 0;
+    const sec = parseInt(match[2], 10);
+    const frac = match[3] ? parseFloat("0." + match[3]) : 0;
+    const seconds = min * 60 + sec + frac;
+    const name = match[4].trim();
+    if (name && Number.isFinite(seconds) && seconds >= 0) {
+      out.push({ startSec: seconds, name });
+    }
+  }
+  return out.sort((a, b) => a.startSec - b.startSec);
+}
+
+function secondsToTimestamp(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+/**
+ * Parse strings like "4:30", "4:30.5", "270", "1:02:30" → seconds.
+ * Returns null on invalid input.
+ */
+function parseTimeString(s: string): number | null {
+  if (!s) return null;
+  const trimmed = s.trim();
+  if (!trimmed) return null;
+  const parts = trimmed.split(":");
+  if (parts.length === 1) {
+    const v = parseFloat(parts[0]);
+    return Number.isFinite(v) && v >= 0 ? v : null;
+  }
+  if (parts.length === 2) {
+    const m = parseInt(parts[0], 10);
+    const sec = parseFloat(parts[1]);
+    if (!Number.isFinite(m) || !Number.isFinite(sec)) return null;
+    return m * 60 + sec;
+  }
+  if (parts.length === 3) {
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const sec = parseFloat(parts[2]);
+    if (!Number.isFinite(h) || !Number.isFinite(m) || !Number.isFinite(sec)) return null;
+    return h * 3600 + m * 60 + sec;
+  }
+  return null;
+}
+
 // ── Prompts ────────────────────────────────────────────────────
 
 function buildDescribePrompt(
@@ -163,31 +227,122 @@ export async function POST(req: NextRequest) {
       if (!songTitle?.trim() || !artist?.trim()) {
         return NextResponse.json({ error: "Song title and artist are required for MIDI-only mode" }, { status: 400 });
       }
+
+      // ── User-supplied markers shortcut ──
+      // If the user pasted markers from their DAW, those are bar-perfect
+      // ground truth — skip lookup/audio guessing entirely.
+      const markersText = (body.markersText as string | undefined)?.trim() || "";
+      const songOffsetText = (body.songOffsetText as string | undefined)?.trim() || "";
+      if (markersText) {
+        const offsetSec = parseTimeString(songOffsetText) ?? 0;
+        const parsedRaw = parseUserMarkers(markersText);
+        const parsed = parsedRaw
+          .map((m) => ({ ...m, startSec: m.startSec - offsetSec }))
+          .filter((m) => m.startSec >= 0);
+        if (parsed.length === 0) {
+          return NextResponse.json({ error: "Couldn't parse any markers (or all came out negative after applying song offset). Check the timestamps and 'song starts at' value." }, { status: 400 });
+        }
+        const nameToSnap = new Map<string, number>();
+        const baseSections = parsed.map((m) => {
+          const baseName = m.name.replace(/\s*\d+$/, "").toUpperCase();
+          if (!nameToSnap.has(baseName)) nameToSnap.set(baseName, nameToSnap.size);
+          return {
+            name: m.name,
+            snapshotIndex: nameToSnap.get(baseName)!,
+            approxTimestamp: secondsToTimestamp(m.startSec),
+            toneDescription: `${baseName} (from your markers)`,
+            midiCCValue: nameToSnap.get(baseName)!,
+          };
+        });
+        const responseMeta = {
+          name: `${songTitle} — ${artist}`,
+          description: `MIDI automation from your supplied markers (${parsed.length} sections). Pick a factory preset on Stadium.`,
+          chain: ["MIDI Automation Only — load any factory preset on Stadium"],
+          snapshots: [...nameToSnap.keys()].slice(0, 8).concat(Array(Math.max(0, 8 - nameToSnap.size)).fill(null)),
+          sections: baseSections,
+          midiInfo: {
+            cc: 69,
+            channel: 1,
+            note: "Program CC69 at each timestamp in your DAW. Set Helix to MIDI channel 1.",
+            presetSlot: presetSlot || undefined,
+            setlistBank: presetSlot ? setlistBank : undefined,
+          },
+          midiOnly: true,
+          source: "markers",
+        };
+        return NextResponse.json({ meta: responseMeta, hsp: null });
+      }
+
       try {
         const lookup = await lookupSong({ title: songTitle.trim(), artist: artist.trim() });
         if (!lookup.found) {
           return NextResponse.json({ error: "Song not found in lookup. Try a different spelling.", warnings: lookup.warnings }, { status: 404 });
         }
 
-        // Map detected sections to the frontend MIDI exporter shape.
-        // De-dupe section names that share a tone (all VERSEs share snap 0).
-        // Clamp out any sections whose start time exceeds the actual song
-        // duration — Claude occasionally hallucinates trailing timestamps.
+        const audioDurationSec = body.audioDurationSec as number | undefined;
+        const audioSongStartSec = body.audioSongStartSec as number | undefined;
         const songDuration = lookup.spotify?.durationSec ?? Infinity;
         const nameToSnap = new Map<string, number>();
-        const baseSections = lookup.sections
-          .filter((s) => s.startSec < songDuration)
-          .map((s) => {
-            const baseName = s.name.replace(/\s*\d+$/, "").toUpperCase();
-            if (!nameToSnap.has(baseName)) nameToSnap.set(baseName, nameToSnap.size);
-            return {
-              name: s.name,
-              snapshotIndex: nameToSnap.get(baseName)!,
-              approxTimestamp: s.startTime,
-              toneDescription: `${baseName} section`,
-              midiCCValue: nameToSnap.get(baseName)!,
-            };
-          });
+
+        function fmt(seconds: number): string {
+          const m = Math.floor(seconds / 60);
+          const s = Math.floor(seconds % 60);
+          return `${m}:${s.toString().padStart(2, "0")}`;
+        }
+
+        type Section = {
+          name: string;
+          snapshotIndex: number;
+          approxTimestamp: string;
+          toneDescription: string;
+          midiCCValue: number;
+        };
+        let baseSections: Section[];
+
+        if (
+          typeof audioDurationSec === "number" &&
+          typeof audioSongStartSec === "number" &&
+          isFinite(songDuration) && songDuration > 0
+        ) {
+          // ── Audio-aligned path ──
+          // Use lookup's section *structure* but stretch+offset it to fit
+          // the user's quantized track. audioSongStartSec is where the
+          // actual song starts (after click/preroll silence). Scale lookup
+          // timestamps so the song fills the rest of the audio file.
+          const audioSongLength = Math.max(0.001, audioDurationSec - audioSongStartSec);
+          const scale = audioSongLength / songDuration;
+
+          baseSections = lookup.sections
+            .filter((s) => s.startSec < songDuration)
+            .map((s) => {
+              const baseName = s.name.replace(/\s*\d+$/, "").toUpperCase();
+              if (!nameToSnap.has(baseName)) nameToSnap.set(baseName, nameToSnap.size);
+              const audioTime = audioSongStartSec + s.startSec * scale;
+              return {
+                name: s.name,
+                snapshotIndex: nameToSnap.get(baseName)!,
+                approxTimestamp: fmt(audioTime),
+                toneDescription: `${baseName} (aligned to your quantized track, preroll +${audioSongStartSec.toFixed(1)}s, scale ${scale.toFixed(3)})`,
+                midiCCValue: nameToSnap.get(baseName)!,
+              };
+            });
+        } else {
+          // ── Lookup-only path (no audio uploaded) ──
+          // Drop hallucinated trailing timestamps that exceed song duration.
+          baseSections = lookup.sections
+            .filter((s) => s.startSec < songDuration)
+            .map((s) => {
+              const baseName = s.name.replace(/\s*\d+$/, "").toUpperCase();
+              if (!nameToSnap.has(baseName)) nameToSnap.set(baseName, nameToSnap.size);
+              return {
+                name: s.name,
+                snapshotIndex: nameToSnap.get(baseName)!,
+                approxTimestamp: s.startTime,
+                toneDescription: `${baseName} section`,
+                midiCCValue: nameToSnap.get(baseName)!,
+              };
+            });
+        }
 
         const responseMeta = {
           name: `${songTitle} — ${artist}`,
