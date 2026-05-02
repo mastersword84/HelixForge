@@ -234,13 +234,24 @@ export async function POST(req: NextRequest) {
       const markersText = (body.markersText as string | undefined)?.trim() || "";
       const songOffsetText = (body.songOffsetText as string | undefined)?.trim() || "";
       if (markersText) {
-        const offsetSec = parseTimeString(songOffsetText) ?? 0;
         const parsedRaw = parseUserMarkers(markersText);
+        if (parsedRaw.length === 0) {
+          return NextResponse.json({ error: "Couldn't parse any markers. Format each line as 'M:SS NAME' (e.g. '0:08 VERSE 1')." }, { status: 400 });
+        }
+
+        // Determine offset:
+        //   - If user typed an explicit SONG STARTS AT, use that.
+        //   - Otherwise, use the first marker's time as the implicit offset
+        //     (their workflow puts INTRO at the click preroll start, so the
+        //     first marker IS the song's local 0:00).
+        const explicitOffset = parseTimeString(songOffsetText);
+        const offsetSec = explicitOffset !== null ? explicitOffset : parsedRaw[0].startSec;
+
         const parsed = parsedRaw
           .map((m) => ({ ...m, startSec: m.startSec - offsetSec }))
           .filter((m) => m.startSec >= 0);
         if (parsed.length === 0) {
-          return NextResponse.json({ error: "Couldn't parse any markers (or all came out negative after applying song offset). Check the timestamps and 'song starts at' value." }, { status: 400 });
+          return NextResponse.json({ error: "Couldn't parse any markers (or all came out negative after applying song offset)." }, { status: 400 });
         }
         const nameToSnap = new Map<string, number>();
         const baseSections = parsed.map((m) => {
@@ -266,6 +277,8 @@ export async function POST(req: NextRequest) {
             note: "Program CC69 at each timestamp in your DAW. Set Helix to MIDI channel 1.",
             presetSlot: presetSlot || undefined,
             setlistBank: presetSlot ? setlistBank : undefined,
+            markersText: markersText || undefined,
+            songOffsetText: songOffsetText || undefined,
           },
           midiOnly: true,
           source: "markers",

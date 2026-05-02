@@ -21,6 +21,10 @@ interface MidiInfo {
   note: string;
   presetSlot?: string;     // e.g. "1A", "12C"; if set, MIDI starts with PC + CC32
   setlistBank?: string;    // CC32 value as string (1-127)
+  // Persisted form inputs so a saved song can be reloaded and re-exported
+  // with a different preset address for shuffled setlists.
+  markersText?: string;
+  songOffsetText?: string;
 }
 
 interface ForgeMeta {
@@ -860,6 +864,37 @@ export default function ForgePage() {
   // Screenshot → markers OCR
   const [parsingScreenshot, setParsingScreenshot] = useState(false);
   const [screenshotError, setScreenshotError] = useState("");
+  // Saved songs picker
+  type SavedPreset = {
+    id: string;
+    preset_name: string;
+    song_title: string | null;
+    artist: string | null;
+    midi_info: { presetSlot?: string; setlistBank?: string; markersText?: string; songOffsetText?: string } | null;
+  };
+  const [savedSongs, setSavedSongs] = useState<SavedPreset[]>([]);
+  const [showSavedPicker, setShowSavedPicker] = useState(false);
+
+  const loadSavedSongs = useCallback(async () => {
+    try {
+      const res = await fetch("/api/presets");
+      if (!res.ok) return;
+      const data = (await res.json()) as SavedPreset[];
+      setSavedSongs(data.filter((p) => p.song_title));
+    } catch (e) {
+      console.warn("Couldn't load saved songs:", e);
+    }
+  }, []);
+
+  const applySavedSong = useCallback((p: SavedPreset) => {
+    setSongTitle(p.song_title ?? "");
+    setArtist(p.artist ?? "");
+    setMarkersText(p.midi_info?.markersText ?? "");
+    setSongOffsetText(p.midi_info?.songOffsetText ?? "");
+    setPresetSlot(p.midi_info?.presetSlot ?? "");
+    setSetlistBank(p.midi_info?.setlistBank ?? "1");
+    setShowSavedPicker(false);
+  }, []);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [status, setStatus] = useState<ForgeStatus>("idle");
@@ -1064,6 +1099,53 @@ export default function ForgePage() {
           {/* ── COVER SONG mode ── */}
           {mode === "cover" && (
             <>
+              {/* Load a previously-saved song's config (markers, slot, etc.) */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!showSavedPicker) loadSavedSongs();
+                    setShowSavedPicker(!showSavedPicker);
+                  }}
+                  className="w-full text-xs font-mono px-3 py-2 rounded transition-all"
+                  style={{
+                    background: showSavedPicker ? "rgba(74,240,255,0.08)" : "transparent",
+                    border: "1px solid var(--forge-arc)",
+                    color: "var(--forge-arc)",
+                  }}
+                >
+                  {showSavedPicker ? "▾" : "▸"} 📚 LOAD SAVED SONG (for shuffled setlists)
+                </button>
+                {showSavedPicker && (
+                  <div className="mt-2 max-h-60 overflow-y-auto rounded border" style={{ borderColor: "var(--forge-border)" }}>
+                    {savedSongs.length === 0 ? (
+                      <div className="p-3 text-xs font-mono text-center" style={{ color: "var(--forge-faint)" }}>
+                        No saved songs yet. Generate one and click &quot;Save to Catalog&quot; to start a library.
+                      </div>
+                    ) : (
+                      savedSongs.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => applySavedSong(p)}
+                          className="w-full text-left px-3 py-2 text-xs font-mono transition-colors"
+                          style={{ borderBottom: "1px solid var(--forge-border)", color: "var(--forge-text)" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(74,240,255,0.05)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        >
+                          <div style={{ color: "var(--forge-text)" }}>{p.song_title}</div>
+                          <div style={{ color: "var(--forge-faint)" }}>
+                            {p.artist}
+                            {p.midi_info?.presetSlot ? ` · slot ${p.midi_info.presetSlot}` : ""}
+                            {p.midi_info?.setlistBank ? ` · bank ${p.midi_info.setlistBank}` : ""}
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
               <Field label="SONG TITLE" value={songTitle} onChange={setSongTitle} placeholder="Comfortably Numb" />
               <Field label="ARTIST" value={artist} onChange={setArtist} placeholder="Pink Floyd" />
 
