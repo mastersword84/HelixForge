@@ -218,6 +218,7 @@ export async function POST(req: NextRequest) {
     const { mode, description, presetName, songTitle, artist, notes, audioAnalysis } = body;
     const presetSlot = (body.presetSlot as string | undefined)?.trim() || "";
     const setlistBank = (body.setlistBank as string | undefined)?.trim() || "1";
+    const projectBpm = (body.projectBpm as string | undefined)?.trim() || "120";
 
     // ── SAFE MIDI-ONLY MODE ──
     // For when the user wants only MIDI automation for their show and will
@@ -239,13 +240,14 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: "Couldn't parse any markers. Format each line as 'M:SS NAME' (e.g. '0:08 VERSE 1')." }, { status: 400 });
         }
 
-        // Determine offset:
-        //   - If user typed an explicit SONG STARTS AT, use that.
-        //   - Otherwise, use the first marker's time as the implicit offset
-        //     (their workflow puts INTRO at the click preroll start, so the
-        //     first marker IS the song's local 0:00).
+        // Offset behavior:
+        //   - Default (SONG STARTS AT empty): NO offset. Events fire at the
+        //     literal marker times. User drops .mid at project 0:00.
+        //   - Explicit SONG STARTS AT: subtract that value (for multi-song
+        //     projects where you want the .mid 0-based and dropped at the
+        //     song's start position in the timeline).
         const explicitOffset = parseTimeString(songOffsetText);
-        const offsetSec = explicitOffset !== null ? explicitOffset : parsedRaw[0].startSec;
+        const offsetSec = explicitOffset !== null ? explicitOffset : 0;
 
         const parsed = parsedRaw
           .map((m) => ({ ...m, startSec: m.startSec - offsetSec }))
@@ -277,6 +279,7 @@ export async function POST(req: NextRequest) {
             note: "Program CC69 at each timestamp in your DAW. Set Helix to MIDI channel 1.",
             presetSlot: presetSlot || undefined,
             setlistBank: presetSlot ? setlistBank : undefined,
+            projectBpm: projectBpm || undefined,
             markersText: markersText || undefined,
             songOffsetText: songOffsetText || undefined,
           },
@@ -369,6 +372,7 @@ export async function POST(req: NextRequest) {
             note: "Program CC69 at each timestamp in your DAW. Set Helix to MIDI channel 1. Snapshot index = CC value.",
             presetSlot: presetSlot || undefined,
             setlistBank: presetSlot ? setlistBank : undefined,
+            projectBpm: projectBpm || undefined,
           },
           midiOnly: true,
           duration: lookup.spotify?.durationSec,
@@ -482,6 +486,7 @@ export async function POST(req: NextRequest) {
             ...parsed.uiMeta.midiInfo,
             presetSlot: presetSlot || undefined,
             setlistBank: presetSlot ? setlistBank : undefined,
+            projectBpm: projectBpm || undefined,
           }
         : null,
       basePreset: { filename: basePreset.filename, name: basePreset.name },

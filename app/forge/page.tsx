@@ -21,6 +21,7 @@ interface MidiInfo {
   note: string;
   presetSlot?: string;     // e.g. "1A", "12C"; if set, MIDI starts with PC + CC32
   setlistBank?: string;    // CC32 value as string (1-127)
+  projectBpm?: string;     // BPM to encode the MIDI at, matching the user's DAW project tempo
   // Persisted form inputs so a saved song can be reloaded and re-exported
   // with a different preset address for shuffled setlists.
   markersText?: string;
@@ -74,11 +75,15 @@ function parsePresetSlot(slot: string): number | null {
 function generateMidiFile(
   sections: Section[],
   midiInfo: MidiInfo,
-  presetAddress?: { presetSlot: string; setlistBank: string }
+  presetAddress?: { presetSlot: string; setlistBank: string },
+  projectBpm = 120
 ): Uint8Array {
-  const PPQ = 480;   // ticks per quarter note
-  const BPM = 120;   // standard tempo; DAW will stretch to project tempo
-  const TICKS_PER_SEC = (BPM / 60) * PPQ; // 960
+  // Standard TPQN timing matched to the user's project BPM. When MIDI BPM
+  // matches Cubase project BPM, events land at the correct absolute seconds
+  // regardless of how Cubase handles file tempo events.
+  const PPQ = 480;
+  const BPM = projectBpm > 0 ? projectBpm : 120;
+  const TICKS_PER_SEC = (BPM / 60) * PPQ;
 
   // "M:SS" or "H:MM:SS" → seconds
   function tsToSeconds(ts: string): number {
@@ -104,7 +109,8 @@ function generateMidiFile(
   const events: number[] = [];
   const ch = Math.max(0, Math.min(15, (midiInfo.channel ?? 1) - 1));
 
-  // Tempo meta event (120 BPM = 500 000 µs/beat)
+  // Tempo meta event — encodes the BPM into the file. When MIDI BPM matches
+  // the project tempo, ticks resolve to the same wall-clock seconds either way.
   const tempoUs = Math.round(60_000_000 / BPM);
   events.push(...vlq(0), 0xFF, 0x51, 0x03,
     (tempoUs >> 16) & 0xFF, (tempoUs >> 8) & 0xFF, tempoUs & 0xFF);
@@ -145,7 +151,7 @@ function generateMidiFile(
   // End of track
   events.push(...vlq(0), 0xFF, 0x2F, 0x00);
 
-  // Header chunk
+  // Header chunk — standard TPQN division (480 ticks per quarter note)
   const header = [
     0x4D, 0x54, 0x68, 0x64,  // "MThd"
     0x00, 0x00, 0x00, 0x06,  // chunk length = 6
@@ -169,9 +175,10 @@ function downloadMidi(
   sections: Section[],
   midiInfo: MidiInfo,
   name: string,
-  presetAddress?: { presetSlot: string; setlistBank: string }
+  presetAddress?: { presetSlot: string; setlistBank: string },
+  projectBpm?: number
 ) {
-  const bytes = generateMidiFile(sections, midiInfo, presetAddress);
+  const bytes = generateMidiFile(sections, midiInfo, presetAddress, projectBpm);
   const blob = new Blob([bytes], { type: "audio/midi" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -644,7 +651,8 @@ function ResultState({ result, onReset }: { result: ForgeResult; onReset: () => 
               meta.name,
               meta.midiInfo?.presetSlot
                 ? { presetSlot: meta.midiInfo.presetSlot, setlistBank: meta.midiInfo.setlistBank ?? "1" }
-                : undefined
+                : undefined,
+              meta.midiInfo?.projectBpm ? parseFloat(meta.midiInfo.projectBpm) : undefined
             )}
             className="flex items-center justify-center gap-3 w-full py-3.5 rounded text-sm font-bold font-mono transition-all duration-200"
             style={{
@@ -861,6 +869,8 @@ export default function ForgePage() {
   const [markersText, setMarkersText] = useState("");
   // Song-start offset in the user's DAW project (e.g. "4:30") — subtracted from all markers
   const [songOffsetText, setSongOffsetText] = useState("");
+  // Project BPM — used to generate the MIDI at matching tempo so events land on the right seconds
+  const [projectBpm, setProjectBpm] = useState("120");
   // Screenshot → markers OCR
   const [parsingScreenshot, setParsingScreenshot] = useState(false);
   const [screenshotError, setScreenshotError] = useState("");
@@ -982,7 +992,7 @@ export default function ForgePage() {
     try {
       const body =
         mode === "cover"
-          ? { mode: "cover", songTitle, artist, notes: coverNotes, audioAnalysis, audioSections, audioDurationSec, audioSongStartSec, midiOnly, presetSlot, setlistBank, markersText, songOffsetText }
+          ? { mode: "cover", songTitle, artist, notes: coverNotes, audioAnalysis, audioSections, audioDurationSec, audioSongStartSec, midiOnly, presetSlot, setlistBank, markersText, songOffsetText, projectBpm }
           : { mode: "describe", description: description || `Tone from audio: ${audioFile?.name}`, presetName };
 
       const res = await fetch("/api/forge", {
@@ -999,7 +1009,7 @@ export default function ForgePage() {
       setError(e instanceof Error ? e.message : "Something went wrong");
       setStatus("error");
     }
-  }, [canForge, isActive, mode, description, presetName, songTitle, artist, coverNotes, coverAudioFile, audioFile, presetSlot, setlistBank, markersText, songOffsetText]);
+  }, [canForge, isActive, mode, description, presetName, songTitle, artist, coverNotes, coverAudioFile, audioFile, presetSlot, setlistBank, markersText, songOffsetText, projectBpm]);
 
   const reset = () => {
     setStatus("idle");
@@ -1168,18 +1178,25 @@ export default function ForgePage() {
                 Pick the slot where this song&apos;s preset lives on Stadium → MIDI auto-loads it before the song. Leave as &quot;manual&quot; if you switch presets yourself.
               </p>
 
-              {/* Song offset — for multi-song projects */}
-              <div>
+              {/* Song offset + project BPM */}
+              <div className="grid grid-cols-2 gap-3">
                 <Field
                   label="SONG STARTS AT (optional)"
                   value={songOffsetText}
                   onChange={setSongOffsetText}
-                  placeholder="4:30"
+                  placeholder="0:00"
                 />
-                <p className="text-xs font-mono mt-1" style={{ color: "var(--forge-faint)" }}>
-                  If your Cubase project has multiple songs, type when this song STARTS in the project (e.g. <code>4:30</code>). HelixForge subtracts that from every marker so the .mid is 0-based. Drop the .mid at the song&apos;s start position. Leave blank if the song is at project 0.
-                </p>
+                <Field
+                  label="PROJECT BPM"
+                  value={projectBpm}
+                  onChange={setProjectBpm}
+                  placeholder="120"
+                  type="number"
+                />
               </div>
+              <p className="text-xs font-mono -mt-1" style={{ color: "var(--forge-faint)" }}>
+                <strong>SONG STARTS AT:</strong> for multi-song projects, type when this song begins (else leave blank for literal marker times). <strong>PROJECT BPM:</strong> match your Cubase project tempo so MIDI events land on the right seconds — Cubase scales ticks against this.
+              </p>
 
               {/* Manual markers — overrides auto-detection when provided */}
               <div>
