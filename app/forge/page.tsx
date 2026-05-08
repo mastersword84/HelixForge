@@ -505,15 +505,17 @@ function ResultState({ result, onReset }: { result: ForgeResult; onReset: () => 
   const [showJson, setShowJson] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const { meta, hsp } = result;
   const isCover = !!meta.sections;
 
   async function saveTocatalog() {
     if (saving || saved) return;
     setSaving(true);
+    setSaveError("");
     try {
       const [songTitle, artist] = isCover ? meta.name.split(" — ") : [null, null];
-      await fetch("/api/presets", {
+      const res = await fetch("/api/presets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -526,10 +528,18 @@ function ResultState({ result, onReset }: { result: ForgeResult; onReset: () => 
           snapshots: meta.snapshots,
           sections: meta.sections,
           midi_info: meta.midiInfo,
-          hsp,
+          // hsp can be null in MIDI-only mode but the DB column is NOT NULL,
+          // so send an empty object as a sentinel. Reload uses midi_info, not hsp.
+          hsp: hsp ?? {},
         }),
       });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        throw new Error(errBody.error || "Save failed");
+      }
       setSaved(true);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Save failed");
     } finally {
       setSaving(false);
     }
@@ -717,6 +727,14 @@ function ResultState({ result, onReset }: { result: ForgeResult; onReset: () => 
           </Link>
         )}
       </div>
+      {saveError && (
+        <div
+          className="px-4 py-2 rounded text-xs font-mono"
+          style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.4)", color: "#ef4444" }}
+        >
+          ⚠ Save failed: {saveError}
+        </div>
+      )}
 
       {/* JSON viewer */}
       <div>
@@ -1037,7 +1055,13 @@ export default function ForgePage() {
         <h1 className="text-sm font-mono font-bold tracking-widest" style={{ color: "var(--forge-ember)" }}>
           THE FORGE
         </h1>
-        <div className="w-28" />
+        <Link
+          href="/webusb"
+          className="text-xs font-mono tracking-widest px-3 py-1.5 rounded transition-colors"
+          style={{ color: "var(--forge-ember)", border: "1px solid rgba(255,107,26,0.35)" }}
+        >
+          WEBUSB →
+        </Link>
       </header>
 
       {/* Body */}
