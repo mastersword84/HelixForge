@@ -1055,13 +1055,22 @@ export default function ForgePage() {
         <h1 className="text-sm font-mono font-bold tracking-widest" style={{ color: "var(--forge-ember)" }}>
           THE FORGE
         </h1>
-        <Link
-          href="/webusb"
-          className="text-xs font-mono tracking-widest px-3 py-1.5 rounded transition-colors"
-          style={{ color: "var(--forge-ember)", border: "1px solid rgba(255,107,26,0.35)" }}
-        >
-          WEBUSB →
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/stadium"
+            className="text-xs font-mono tracking-widest px-3 py-1.5 rounded transition-colors"
+            style={{ color: "var(--forge-ember)", border: "1px solid rgba(255,107,26,0.35)" }}
+          >
+            STADIUM →
+          </Link>
+          <Link
+            href="/webusb"
+            className="text-xs font-mono tracking-widest px-3 py-1.5 rounded transition-colors"
+            style={{ color: "var(--forge-ember)", border: "1px solid rgba(255,107,26,0.35)" }}
+          >
+            WEBUSB →
+          </Link>
+        </div>
       </header>
 
       {/* Body */}
