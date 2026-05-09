@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { analyzeAudioFile, type AudioAnalysisResult } from "@/lib/audio-analysis";
 
@@ -35,6 +35,7 @@ interface ForgeMeta {
   snapshots: string[];
   sections: Section[] | null;
   midiInfo: MidiInfo | null;
+  basePreset?: { filename: string; name: string };
 }
 
 interface ForgeResult {
@@ -179,7 +180,7 @@ function downloadMidi(
   projectBpm?: number
 ) {
   const bytes = generateMidiFile(sections, midiInfo, presetAddress, projectBpm);
-  const blob = new Blob([bytes], { type: "audio/midi" });
+  const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "audio/midi" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -501,13 +502,45 @@ function MidiMap({ sections, midiInfo }: { sections: Section[]; midiInfo: MidiIn
 }
 
 /* ── Result ── */
-function ResultState({ result, onReset }: { result: ForgeResult; onReset: () => void }) {
+function ResultState({ result, onReset, libraryPresetId }: {
+  result: ForgeResult;
+  onReset: () => void;
+  libraryPresetId?: string | null;
+}) {
   const [showJson, setShowJson] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [sendingToStadium, setSendingToStadium] = useState(false);
+  const [stadiumStatus, setStadiumStatus] = useState("");
   const { meta, hsp } = result;
   const isCover = !!meta.sections;
+
+  async function sendToStadium() {
+    if (sendingToStadium) return;
+    setSendingToStadium(true);
+    setStadiumStatus("Sending to Stadium…");
+    try {
+      // Store forge result in localStorage so Stadium can pick it up
+      const pending = {
+        presetName: meta.name,
+        basePresetName: libraryPresetId ? "" : (meta.basePreset?.name ?? ""),
+        libraryPresetId: libraryPresetId ?? null,
+        snapshots: meta.snapshots.map(name => ({ name: name ?? "Snapshot" })),
+        chain: meta.chain,
+        description: meta.description,
+        hsp,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem("helixforge_pending_import", JSON.stringify(pending));
+      setStadiumStatus("Saved — opening Stadium…");
+      // Navigate to Stadium
+      window.location.href = "/stadium?import=pending";
+    } catch (e) {
+      setStadiumStatus(`Error: ${String(e)}`);
+      setSendingToStadium(false);
+    }
+  }
 
   async function saveTocatalog() {
     if (saving || saved) return;
@@ -621,8 +654,26 @@ function ResultState({ result, onReset }: { result: ForgeResult; onReset: () => 
         <MidiMap sections={meta.sections} midiInfo={meta.midiInfo} />
       )}
 
-      {/* Downloads */}
+      {/* Downloads + Send to Stadium */}
       <div className="flex flex-col gap-3">
+        {hsp && (
+          <button
+            onClick={sendToStadium}
+            disabled={sendingToStadium}
+            className="flex items-center justify-center gap-3 w-full py-4 rounded text-sm font-bold font-mono transition-all duration-200"
+            style={{
+              background: sendingToStadium ? "rgba(74,222,128,0.15)" : "rgba(74,222,128,0.2)",
+              border: "1px solid rgba(74,222,128,0.5)",
+              color: "#4ade80",
+              opacity: sendingToStadium ? 0.7 : 1,
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <circle cx="12" cy="12" r="2" /><path d="M12 2a10 10 0 0 1 0 20" /><path d="M2 12h4M18 12h4" />
+            </svg>
+            {stadiumStatus || "Send to Stadium"}
+          </button>
+        )}
         {hsp && (
           <button
             onClick={() => downloadHsp(hsp, meta.name)}
@@ -914,6 +965,27 @@ export default function ForgePage() {
     }
   }, []);
 
+  // Library preset picker (captured presets from Stadium)
+  type LibraryPreset = { id: string; preset_name: string; description: string; snapshots: string[] | null };
+  const [libraryPresets, setLibraryPresets] = useState<LibraryPreset[]>([]);
+  const [showLibraryPicker, setShowLibraryPicker] = useState(false);
+  const [selectedLibraryPreset, setSelectedLibraryPreset] = useState<{ id: string; name: string } | null>(null);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+
+  const loadLibraryPresets = useCallback(async () => {
+    setLibraryLoading(true);
+    try {
+      const res = await fetch("/api/presets?mode=capture");
+      if (!res.ok) return;
+      const data = (await res.json()) as LibraryPreset[];
+      setLibraryPresets(data);
+    } catch (e) {
+      console.warn("Couldn't load library presets:", e);
+    } finally {
+      setLibraryLoading(false);
+    }
+  }, []);
+
   const applySavedSong = useCallback((p: SavedPreset) => {
     setSongTitle(p.song_title ?? "");
     setArtist(p.artist ?? "");
@@ -925,6 +997,9 @@ export default function ForgePage() {
   }, []);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [snapshotIdeas, setSnapshotIdeas] = useState("");
+  const [uploadAnalyzing, setUploadAnalyzing] = useState(false);
+  const [uploadAnalysis, setUploadAnalysis] = useState<AudioAnalysisResult | null>(null);
   const [status, setStatus] = useState<ForgeStatus>("idle");
   const [result, setResult] = useState<ForgeResult | null>(null);
   const [analysisResult, setAnalysisResult] = useState<AudioAnalysisResult | null>(null);
@@ -932,6 +1007,19 @@ export default function ForgePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverFileInputRef = useRef<HTMLInputElement>(null);
   const screenshotInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-analyze when audio file is dropped in upload mode
+  useEffect(() => {
+    if (!audioFile || mode !== "upload") return;
+    let cancelled = false;
+    setUploadAnalyzing(true);
+    setUploadAnalysis(null);
+    analyzeAudioFile(audioFile)
+      .then(res => { if (!cancelled) setUploadAnalysis(res); })
+      .catch(() => { /* non-fatal */ })
+      .finally(() => { if (!cancelled) setUploadAnalyzing(false); });
+    return () => { cancelled = true; };
+  }, [audioFile, mode]);
 
   const handleScreenshotFile = useCallback(async (file: File) => {
     setScreenshotError("");
@@ -1011,7 +1099,13 @@ export default function ForgePage() {
       const body =
         mode === "cover"
           ? { mode: "cover", songTitle, artist, notes: coverNotes, audioAnalysis, audioSections, audioDurationSec, audioSongStartSec, midiOnly, presetSlot, setlistBank, markersText, songOffsetText, projectBpm }
-          : { mode: "describe", description: description || `Tone from audio: ${audioFile?.name}`, presetName };
+          : {
+              mode: "describe",
+              description: description || `Tone from audio: ${audioFile?.name}`,
+              presetName,
+              audioAnalysis: uploadAnalysis?.summary,
+              snapshotIdeas: snapshotIdeas.trim() || undefined,
+            };
 
       const res = await fetch("/api/forge", {
         method: "POST",
@@ -1027,7 +1121,7 @@ export default function ForgePage() {
       setError(e instanceof Error ? e.message : "Something went wrong");
       setStatus("error");
     }
-  }, [canForge, isActive, mode, description, presetName, songTitle, artist, coverNotes, coverAudioFile, audioFile, presetSlot, setlistBank, markersText, songOffsetText, projectBpm]);
+  }, [canForge, isActive, mode, description, presetName, songTitle, artist, coverNotes, coverAudioFile, audioFile, presetSlot, setlistBank, markersText, songOffsetText, projectBpm, snapshotIdeas, uploadAnalysis]);
 
   const reset = () => {
     setStatus("idle");
@@ -1114,6 +1208,22 @@ export default function ForgePage() {
               </div>
 
               <div>
+                <label className="block text-xs font-mono mb-2 tracking-widest" style={{ color: "var(--forge-faint)" }}>
+                  SNAPSHOT IDEAS <span className="opacity-40 normal-case font-normal">(optional)</span>
+                </label>
+                <textarea
+                  value={snapshotIdeas}
+                  onChange={(e) => setSnapshotIdeas(e.target.value)}
+                  placeholder={"name 1 CLEAN, 2 RHYTHM, 3 LEAD\nwah enabled on snapshot 3\nambient delay on 4, boosted 3dB"}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded text-sm outline-none resize-none"
+                  style={{ background: "var(--forge-iron)", border: "1px solid var(--forge-border)", color: "var(--forge-text)", fontFamily: "system-ui, sans-serif" }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "var(--forge-ember)")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "var(--forge-border)")}
+                />
+              </div>
+
+              <div>
                 <p className="text-xs font-mono mb-2.5 tracking-widest" style={{ color: "var(--forge-faint)" }}>QUICK EXAMPLES</p>
                 <div className="flex flex-wrap gap-2">
                   {DESCRIBE_EXAMPLES.map((ex) => (
@@ -1182,6 +1292,72 @@ export default function ForgePage() {
                             {p.midi_info?.presetSlot ? ` · slot ${p.midi_info.presetSlot}` : ""}
                             {p.midi_info?.setlistBank ? ` · bank ${p.midi_info.setlistBank}` : ""}
                           </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Library preset base picker */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!showLibraryPicker) loadLibraryPresets();
+                    setShowLibraryPicker(!showLibraryPicker);
+                  }}
+                  className="w-full text-xs font-mono px-3 py-2 rounded transition-all"
+                  style={{
+                    background: selectedLibraryPreset
+                      ? "rgba(74,222,128,0.12)"
+                      : showLibraryPicker ? "rgba(74,222,128,0.06)" : "transparent",
+                    border: `1px solid ${selectedLibraryPreset ? "rgba(74,222,128,0.5)" : "rgba(74,222,128,0.25)"}`,
+                    color: "#4ade80",
+                  }}
+                >
+                  {selectedLibraryPreset
+                    ? `✓ BASE: ${selectedLibraryPreset.name}`
+                    : `${showLibraryPicker ? "▾" : "▸"} 🎛 USE CAPTURED PRESET AS BASE`}
+                </button>
+                {selectedLibraryPreset && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLibraryPreset(null)}
+                    className="mt-1 w-full text-xs font-mono opacity-40 hover:opacity-70"
+                    style={{ color: "#4ade80" }}
+                  >
+                    ✕ clear — use auto-selected factory preset
+                  </button>
+                )}
+                {showLibraryPicker && !selectedLibraryPreset && (
+                  <div className="mt-2 max-h-48 overflow-y-auto rounded border" style={{ borderColor: "rgba(74,222,128,0.2)" }}>
+                    {libraryLoading ? (
+                      <div className="p-3 text-xs font-mono text-center" style={{ color: "var(--forge-faint)" }}>Loading…</div>
+                    ) : libraryPresets.length === 0 ? (
+                      <div className="p-3 text-xs font-mono text-center" style={{ color: "var(--forge-faint)" }}>
+                        No captured presets yet. Dial in a tone in Stadium → Capture to Library.
+                      </div>
+                    ) : (
+                      libraryPresets.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => { setSelectedLibraryPreset({ id: p.id, name: p.preset_name }); setShowLibraryPicker(false); }}
+                          className="w-full text-left px-3 py-2 text-xs font-mono transition-colors"
+                          style={{ borderBottom: "1px solid rgba(74,222,128,0.08)", color: "var(--forge-text)" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(74,222,128,0.07)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        >
+                          <div style={{ color: "#4ade80" }}>{p.preset_name}</div>
+                          {p.description && (
+                            <div className="truncate" style={{ color: "var(--forge-faint)" }}>{p.description}</div>
+                          )}
+                          {p.snapshots && p.snapshots.length > 0 && (
+                            <div style={{ color: "rgba(74,222,128,0.5)", fontSize: 9 }}>
+                              {p.snapshots.filter(Boolean).join(" · ")}
+                            </div>
+                          )}
                         </button>
                       ))
                     )}
@@ -1424,13 +1600,25 @@ export default function ForgePage() {
                 )}
               </div>
 
-              <div className="flex items-start gap-2.5 px-3 py-3 rounded text-xs"
-                style={{ background: "rgba(74,240,255,0.05)", border: "1px solid rgba(74,240,255,0.15)", color: "var(--forge-arc)" }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 mt-0.5">
-                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                Audio analysis coming soon. Add a description to guide the forge.
-              </div>
+              {/* Analysis status / results */}
+              {uploadAnalyzing && (
+                <div className="flex items-center gap-2 text-xs font-mono px-3 py-2 rounded"
+                  style={{ background: "rgba(74,240,255,0.06)", border: "1px solid rgba(74,240,255,0.2)", color: "var(--forge-arc)" }}>
+                  <span className="animate-pulse">◈</span> Analyzing audio…
+                </div>
+              )}
+              {uploadAnalysis && !uploadAnalyzing && (
+                <div className="flex flex-col gap-1 px-3 py-2 rounded text-xs font-mono"
+                  style={{ background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.25)" }}>
+                  <span style={{ color: "#4ade80" }}>◈ ANALYZED — {uploadAnalysis.sections.length} sections, {Math.round(uploadAnalysis.durationSec)}s</span>
+                  {uploadAnalysis.sections.slice(0, 4).map((s, i) => (
+                    <span key={i} className="opacity-60">
+                      {s.startTime} — {s.energyLevel} · {s.estimatedDrive} · {s.brightness}
+                    </span>
+                  ))}
+                  {uploadAnalysis.sections.length > 4 && <span className="opacity-40">+{uploadAnalysis.sections.length - 4} more sections</span>}
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-mono mb-2 tracking-widest" style={{ color: "var(--forge-faint)" }}>
@@ -1439,7 +1627,26 @@ export default function ForgePage() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe the tone in this clip..."
+                  placeholder="heavy rhythm with scooped mids, ambient lead boosted 3dB, clean sparkly..."
+                  rows={3}
+                  className="w-full px-4 py-3 rounded text-sm outline-none resize-none"
+                  style={{
+                    background: "var(--forge-iron)", border: "1px solid var(--forge-border)",
+                    color: "var(--forge-text)", fontFamily: "system-ui, sans-serif",
+                  }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "var(--forge-ember)")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "var(--forge-border)")}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono mb-2 tracking-widest" style={{ color: "var(--forge-faint)" }}>
+                  SNAPSHOT IDEAS <span className="opacity-40 normal-case font-normal">(optional)</span>
+                </label>
+                <textarea
+                  value={snapshotIdeas}
+                  onChange={(e) => setSnapshotIdeas(e.target.value)}
+                  placeholder={"name 1 CLEAN, 2 RHYTHM, 3 LEAD\nwah enabled on snapshot 3\nambient delay on snapshot 4 boosted 3dB\nno crunch on snapshot 1"}
                   rows={4}
                   className="w-full px-4 py-3 rounded text-sm outline-none resize-none"
                   style={{
@@ -1533,7 +1740,7 @@ export default function ForgePage() {
           ) : status === "analyzing" || status === "forging" ? (
             <ForgingState status={status} mode={mode} analysisResult={analysisResult} />
           ) : result ? (
-            <ResultState result={result} onReset={reset} />
+            <ResultState result={result} onReset={reset} libraryPresetId={selectedLibraryPreset?.id} />
           ) : null}
         </div>
       </div>

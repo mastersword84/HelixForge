@@ -117,15 +117,25 @@ function parseTimeString(s: string): number | null {
 function buildDescribePrompt(
   description: string,
   presetName: string,
-  baseDescription: string
+  baseDescription: string,
+  audioSummary?: string,
+  snapshotIdeas?: string,
 ) {
+  const audioBlock = audioSummary
+    ? `\nAUDIO ANALYSIS (from uploaded stem):\n${audioSummary}\nUse the spectral data above to calibrate drive, EQ, and gain levels accurately.\n`
+    : "";
+
+  const snapshotBlock = snapshotIdeas?.trim()
+    ? `\nSNAPSHOT IDEAS FROM USER:\n${snapshotIdeas.trim()}\nHonor these snapshot names and any specific bypass/WAH/boost requests exactly.\n`
+    : "";
+
   return `Generate a Helix Stadium preset for this tone request. The server has
 already chosen a known-good factory preset as the BASE — your job is only to
 tweak its existing blocks (param values, snapshot bypass states, snapshot
 names). You CANNOT swap any models, add blocks, or change the chain.
 
 ${baseDescription}
-
+${audioBlock}${snapshotBlock}
 TONE REQUEST: "${description}"
 PRESET NAME: "${presetName}"
 
@@ -256,7 +266,7 @@ interface ClaudeResponse {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { mode, description, presetName, songTitle, artist, notes, audioAnalysis } = body;
+    const { mode, description, presetName, songTitle, artist, notes, audioAnalysis, snapshotIdeas } = body;
     const presetSlot = (body.presetSlot as string | undefined)?.trim() || "";
     const setlistBank = (body.setlistBank as string | undefined)?.trim() || "1";
     const projectBpm = (body.projectBpm as string | undefined)?.trim() || "120";
@@ -473,7 +483,9 @@ export async function POST(req: NextRequest) {
       userPrompt = buildDescribePrompt(
         description.trim(),
         presetName?.trim() || "HelixForge Preset",
-        describeBaseBlocks(basePreset)
+        describeBaseBlocks(basePreset),
+        audioAnalysis as string | undefined,
+        snapshotIdeas as string | undefined
       );
     }
 

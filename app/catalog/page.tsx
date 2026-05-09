@@ -70,7 +70,7 @@ function generateMidiFile(sections: NonNullable<Preset["sections"]>, midiInfo: N
 
 function downloadMidi(sections: NonNullable<Preset["sections"]>, midiInfo: NonNullable<Preset["midi_info"]>, name: string) {
   const bytes = generateMidiFile(sections, midiInfo);
-  const blob = new Blob([bytes], { type: "audio/midi" });
+  const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "audio/midi" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

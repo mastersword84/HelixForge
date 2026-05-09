@@ -76,9 +76,26 @@ async function subscribePort(
         port,
         topic: osc.address,
         data: {
-          args: osc.args.map((a) =>
-            a instanceof Buffer ? `<blob ${(a as Buffer).length}b>` : a
-          ),
+          args: osc.args.map((a) => {
+            if (!(a instanceof Buffer)) return a;
+            const buf = a as Buffer;
+            // Line 6 blobs: 8-byte ASCII magic prefix before msgpack
+            const magic = buf.slice(0, 8).toString("ascii");
+            const hasMagic = magic === "lavppgsm" || magic === "_sbepgsm";
+            if (hasMagic) {
+              try {
+                const decoded = decode(buf.slice(8));
+                return { _magic: magic, _msgpack: decoded, _len: buf.length };
+              } catch { /* fall through */ }
+            }
+            // Try plain msgpack (e.g. /loadContentRef blobs have no prefix)
+            try {
+              const decoded = decode(buf);
+              return { _msgpack: decoded, _len: buf.length };
+            } catch { /* not msgpack */ }
+            // Fall back to base64 so the full bytes are preserved in captures
+            return { _b64: buf.toString("base64"), _len: buf.length };
+          }),
         },
       });
     }
