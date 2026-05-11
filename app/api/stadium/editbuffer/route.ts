@@ -123,6 +123,108 @@ function toFourCC(n: number): string {
   return `0x${n.toString(16).padStart(8, "0")}`;
 }
 
+// Non-truncating key normalizer — converts integer msgpack keys to FourCC only.
+// Used for data extraction (stomps, etc.) where truncation would drop entries.
+function normalizeKeys(val: unknown): unknown {
+  if (Array.isArray(val)) return val.map(normalizeKeys);
+  if (val instanceof Uint8Array || val instanceof Buffer) return null;
+  if (val !== null && typeof val === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(val as Record<string, unknown>)) {
+      const n = Number(k);
+      const key = Number.isInteger(n) && n >= 0 && String(n) === k ? toFourCC(n) : k;
+      out[key] = normalizeKeys(v);
+    }
+    return out;
+  }
+  return val;
+}
+
+export interface StompEntry { slot: number; label: string; color: number; }
+
+// Stomp source IDs (same as HSP sources keys).
+// Bank A: 0x01010100 – 0x0101010B → display slots 1-12
+// Bank B: 0x01010200 – 0x0101020B → display slots 13-24
+const STOMP_A_BASE = 0x01010100;
+const STOMP_B_BASE = 0x01010200;
+const STOMP_BANK_SIZE = 12;
+
+const COLOR_NAMES: Record<string, number> = {
+  auto: 0, white: 0, red: 1, orange: 2, yellow: 3, green: 4,
+  cyan: 5, blue: 6, violet: 7, pink: 8, aqua: 9, lime: 10, mint: 11,
+};
+
+function parseColor(v: unknown): number {
+  if (typeof v === "number") return v;
+  const s = String(v ?? "").toLowerCase().trim();
+  return COLOR_NAMES[s] ?? 0;
+}
+
+// Walk the full normalized blob looking for hex-keyed source objects.
+// After normalizeKeys, non-printable integer keys become "0x01010100" etc.
+function extractStomps(raw: unknown): { stomps: StompEntry[]; sampleSource: Record<string, unknown> | null } {
+  const norm = normalizeKeys(raw) as Record<string, unknown>;
+  const slotMap = new Map<number, { label: string; color: number }>();
+  let sampleSource: Record<string, unknown> | null = null;
+
+  function walk(obj: Record<string, unknown>) {
+    for (const [k, v] of Object.entries(obj)) {
+      if (k.startsWith("0x")) {
+        const n = parseInt(k, 16);
+        let slot: number | null = null;
+        if (n >= STOMP_A_BASE && n < STOMP_A_BASE + STOMP_BANK_SIZE) {
+          slot = (n - STOMP_A_BASE) + 1;       // 1-12
+        } else if (n >= STOMP_B_BASE && n < STOMP_B_BASE + STOMP_BANK_SIZE) {
+          slot = (n - STOMP_B_BASE) + 1 + 12;  // 13-24
+        }
+        if (slot !== null && v && typeof v === "object" && !Array.isArray(v)) {
+          const src = v as Record<string, unknown>;
+          if (!sampleSource) sampleSource = src; // capture first found for diagnosis
+          const label = String(
+            src["fs_l"] ?? src["labl"] ?? src["name"] ?? src["lbl_"] ?? src["fs_label"] ?? ""
+          );
+          const color = parseColor(
+            src["fs_c"] ?? src["colr"] ?? src["clr_"] ?? src["fs_color"] ?? 0
+          );
+          slotMap.set(slot, { label, color });
+        }
+      }
+      if (v && typeof v === "object" && !Array.isArray(v)) {
+        walk(v as Record<string, unknown>);
+      }
+    }
+  }
+
+  walk(norm);
+
+  // Supplement from pm__ — scan all values in each entry for stomp path strings.
+  const pm = norm["pm__"];
+  if (Array.isArray(pm)) {
+    for (const entry of pm) {
+      if (!entry || typeof entry !== "object") continue;
+      const allVals = Object.values(entry as Record<string, unknown>);
+      const keyStr = allVals.find(
+        (v): v is string => typeof v === "string" &&
+          /preset\.floorboard\.stomp\.(a|b)\.\d+\.(label|color)/.test(v)
+      );
+      if (!keyStr) continue;
+      const m = keyStr.match(/preset\.floorboard\.stomp\.(a|b)\.(\d+)\.(label|color)/);
+      if (!m) continue;
+      const slot = parseInt(m[2], 10) + (m[1] === "b" ? 12 : 0);
+      const valRaw = allVals.find(v => v !== keyStr);
+      const cur = slotMap.get(slot) ?? { label: "", color: 0 };
+      if (m[3] === "label" && !cur.label) cur.label = String(valRaw ?? "");
+      if (m[3] === "color" && cur.color === 0) cur.color = parseColor(valRaw);
+      slotMap.set(slot, cur);
+    }
+  }
+
+  return {
+    stomps: Array.from(slotMap.entries()).map(([slot, v]) => ({ slot, ...v })),
+    sampleSource,
+  };
+}
+
 // Recursively convert integer msgpack keys to FourCC strings.
 // Truncates arrays > maxArr and strings > maxStr to keep JSON manageable.
 function normalize(val: unknown, depth = 0): unknown {
@@ -177,13 +279,18 @@ export async function GET(req: NextRequest) {
     try {
       const raw = decode(blobBytes.slice(off));
       const normalized = normalize(raw);
+      const { stomps, sampleSource } = extractStomps(raw);
+      const normFull = normalizeKeys(raw) as Record<string, unknown>;
+      const topKeys = Object.keys(normFull);
       return Response.json({
         ok: true,
         presetCid,
         blobLen: blobArg._len,
         msgpackOffset: off,
         prefix: off > 0 ? blobBytes.slice(0, off).toString("hex") : null,
-        rawBlob: blobArg._b64,  // raw blob for round-trip write
+        rawBlob: blobArg._b64,
+        stomps,
+        stompDebug: { topKeys, stompCount: stomps.length, sampleSource },
         data: normalized,
       });
     } catch { /* try next offset */ }

@@ -110,14 +110,16 @@ interface StompSlot {
   midiMin?: number;     // 0-127
   midiMax?: number;     // 0-127
 }
+interface BlockInfo { slot: number; model: string; name: string; type: string; }
 interface PedalboardProps {
   stomps: StompSlot[];
   ip: string;
   devicePresetName: string;
+  stompMap: { bankA: BlockInfo[]; bankB: BlockInfo[] } | null;
   onStompsChange: (stomps: StompSlot[]) => void;
 }
 
-function Pedalboard({ stomps, ip, devicePresetName, onStompsChange }: PedalboardProps) {
+function Pedalboard({ stomps, ip, devicePresetName, stompMap, onStompsChange }: PedalboardProps) {
   const [pickerSlot, setPickerSlot] = useState<number | null>(null);
   const [pickerTab, setPickerTab] = useState<'block'|'midi'|'label'>('block');
   const [pickerSearch, setPickerSearch] = useState('');
@@ -130,9 +132,11 @@ function Pedalboard({ stomps, ip, devicePresetName, onStompsChange }: Pedalboard
   const [captureDesc, setCaptureDesc] = useState("");
   const [captureStatus, setCaptureStatus] = useState("");
   const [capturing, setCapturing] = useState(false);
+  const [stompBank, setStompBank] = useState<'a'|'b'>('a');
 
-  // Expand stomps to always show 12 slots (6+6 companion app layout)
-  const maxSlot = Math.max(11, ...stomps.map(s => s.slot));
+  // stomp.a.1-12 → slots 1-12 (11+12 are fixed buttons, shown as static UI)
+  // stomp.b.1-12 → slots 13-24 (bankOffset=12 avoids collision)
+  const maxSlot = Math.max(24, ...stomps.map(s => s.slot));
   const slots: StompSlot[] = Array.from({ length: maxSlot + 1 }, (_, i) => {
     const found = stomps.find(s => s.slot === i);
     return found ?? { slot: i, label: "", color: 0 };
@@ -198,9 +202,20 @@ function Pedalboard({ stomps, ip, devicePresetName, onStompsChange }: Pedalboard
     finally { setCapturing(false); }
   }
 
-  // Split into two rows of 6 (companion app layout)
-  const rowA = slots.slice(0, 6);
-  const rowB = slots.slice(6, 12);
+  // STOMP A: stomp.a.1-10 → slots 1-10  (11/12 are fixed, rendered as static UI)
+  // STOMP B: stomp.b.1-12 → slots 13-24 (bankOffset=12)
+  const off = stompBank === 'a' ? 0 : 12;
+  const row1 = slots.filter(s => s.slot >= 1+off  && s.slot <= 5+off);
+  const row2 = slots.filter(s => s.slot >= 6+off  && s.slot <= 10+off);
+
+  // blockForSlot: given a physical stomp slot number, return the signal-chain block it controls.
+  // Bank A: slot 1-10 → stompMap.bankA[0..9]; Bank B: slot 13-22 → stompMap.bankB[0..9]
+  const blockForSlot = (stompSlot: number): BlockInfo | undefined => {
+    if (!stompMap) return undefined;
+    if (stompSlot >= 1 && stompSlot <= 10)   return stompMap.bankA[stompSlot - 1];
+    if (stompSlot >= 13 && stompSlot <= 22)  return stompMap.bankB[stompSlot - 13];
+    return undefined;
+  };
 
   return (
     <div
@@ -210,6 +225,21 @@ function Pedalboard({ stomps, ip, devicePresetName, onStompsChange }: Pedalboard
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="text-xs font-mono tracking-widest" style={{ color: "#5a5a80" }}>STOMP SWITCHES</span>
+        {/* A / B bank toggle */}
+        <div className="flex rounded overflow-hidden" style={{ border: "1px solid #2a2a3a" }}>
+          {(['a','b'] as const).map(bank => (
+            <button
+              key={bank}
+              onClick={() => setStompBank(bank)}
+              className="px-3 py-0.5 text-xs font-mono font-bold tracking-widest"
+              style={stompBank === bank
+                ? { background: "rgba(255,107,26,0.25)", color: "#ff6b1a" }
+                : { background: "transparent", color: "rgba(255,255,255,0.25)" }}
+            >
+              {bank.toUpperCase()}
+            </button>
+          ))}
+        </div>
         <button
           onClick={pushToDevice}
           disabled={pushing}
@@ -291,19 +321,43 @@ function Pedalboard({ stomps, ip, devicePresetName, onStompsChange }: Pedalboard
         </div>
       )}
 
-      {/* Stomp A */}
+      {/* Active bank — 2 rows of 5 + fixed buttons */}
       <div className="flex flex-col gap-2">
-        <span className="text-xs font-mono tracking-widest" style={{ color: "#3a3a55" }}>STOMP A</span>
-        <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(6, 1fr)" }}>
-          {rowA.map((s) => <StompButton key={s.slot} slot={s} onEdit={openPicker} />)}
+        {/* Top row + TAP/STOMP/PRESET */}
+        <div className="flex gap-2">
+          <div className="grid gap-2 flex-1" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
+            {row2.map((s) => <StompButton key={s.slot} slot={s} block={blockForSlot(s.slot)} onEdit={openPicker} />)}
+          </div>
+          <div className="flex flex-col items-center rounded justify-between" style={{
+            minHeight: 96, minWidth: 80, padding: "8px 4px 7px", gap: 5,
+            background: "linear-gradient(180deg, #16161f 0%, #0e0e16 100%)",
+            border: "1px solid #3a2a1a", boxShadow: "0 0 14px rgba(255,107,26,0.08), inset 0 1px 0 rgba(255,255,255,0.03)",
+            flexShrink: 0,
+          }}>
+            <div style={{ width: 30, height: 30, borderRadius: 7, background: "radial-gradient(135deg, #1e1410, #0e0a06)", border: "1.5px solid #ff6b1a55", boxShadow: "0 0 8px rgba(255,107,26,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 700, color: "#ff6b1a" }}>⬡</span>
+            </div>
+            <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#ff6b1a", boxShadow: "0 0 7px 2px rgba(255,107,26,0.5)" }} />
+            <span style={{ fontSize: 6.5, fontFamily: "monospace", letterSpacing: "0.04em", color: "rgba(255,107,26,0.7)", textAlign: "center", lineHeight: 1.3 }}>TAP<br/>STOMP<br/>PRESET</span>
+          </div>
         </div>
-      </div>
-
-      {/* Stomp B */}
-      <div className="flex flex-col gap-2">
-        <span className="text-xs font-mono tracking-widest" style={{ color: "#3a3a55" }}>STOMP B</span>
-        <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(6, 1fr)" }}>
-          {rowB.map((s) => <StompButton key={s.slot} slot={s} onEdit={openPicker} />)}
+        {/* Bottom row + TUNER */}
+        <div className="flex gap-2">
+          <div className="grid gap-2 flex-1" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
+            {row1.map((s) => <StompButton key={s.slot} slot={s} block={blockForSlot(s.slot)} onEdit={openPicker} />)}
+          </div>
+          <div className="flex flex-col items-center rounded justify-between" style={{
+            minHeight: 96, minWidth: 80, padding: "8px 4px 7px", gap: 5,
+            background: "linear-gradient(180deg, #16161f 0%, #0e0e16 100%)",
+            border: "1px solid #1a2a3a", boxShadow: "0 0 14px rgba(0,200,255,0.06), inset 0 1px 0 rgba(255,255,255,0.03)",
+            flexShrink: 0,
+          }}>
+            <div style={{ width: 30, height: 30, borderRadius: 7, background: "radial-gradient(135deg, #0e141e, #060a0e)", border: "1.5px solid #00ccff44", boxShadow: "0 0 8px rgba(0,200,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: 10, fontFamily: "monospace", fontWeight: 700, color: "#00ccff" }}>𝄞</span>
+            </div>
+            <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#00ccff", boxShadow: "0 0 7px 2px rgba(0,200,255,0.4)" }} />
+            <span style={{ fontSize: 7.5, fontFamily: "monospace", letterSpacing: "0.05em", color: "rgba(0,200,255,0.7)", textAlign: "center", lineHeight: 1.2 }}>TUNER</span>
+          </div>
         </div>
       </div>
 
@@ -325,7 +379,11 @@ function Pedalboard({ stomps, ip, devicePresetName, onStompsChange }: Pedalboard
             {/* Picker header */}
             <div className="flex items-center gap-2 px-3 py-2 border-b" style={{ borderColor: "#1a1a28", background: "#0d0d18" }}>
               <span className="text-xs font-mono tracking-widest" style={{ color: "#ff6b1a" }}>
-                STOMP {pickerSlot} ASSIGN
+                {pickerSlot != null && pickerSlot <= 12
+                  ? `STOMP A · ${pickerSlot}`
+                  : pickerSlot != null
+                  ? `STOMP B · ${pickerSlot - 12}`
+                  : ""} ASSIGN
               </span>
               <div className="flex gap-1 ml-2">
                 {(['block','midi','label'] as const).map(t => (
@@ -529,80 +587,124 @@ function Pedalboard({ stomps, ip, devicePresetName, onStompsChange }: Pedalboard
   );
 }
 
-function StompButton({ slot, onEdit }: { slot: StompSlot; onEdit: (n: number) => void }) {
+function StompButton({ slot, block, onEdit }: { slot: StompSlot; block?: BlockInfo; onEdit: (n: number) => void }) {
   const helixColor = HELIX_COLORS.find(c => c.id === slot.color) ?? HELIX_COLORS[0];
   const modelInfo = slot.model ? ALL_MODELS.find(m => m.id === slot.model) : null;
-  const hasContent = slot.label.length > 0 || !!slot.model;
-  const ledColor = modelInfo ? modelInfo.border : helixColor.hex;
-  const borderColor = modelInfo ? modelInfo.border + "66" : hasContent ? helixColor.hex + "55" : "#1e1e2e";
+  const labelTrimmed = slot.label.trim();
+  const hasContent = labelTrimmed.length > 0 || !!slot.model;
+
+  // Derive display from manually-assigned model > auto block > empty
+  const blockCat = block ? (() => {
+    switch (block.type) {
+      case "amp": case "pre": return { border: "#e03030", bg: "#200808", abbr: "AMP" };
+      case "cab": return { border: "#b04820", bg: "#180c05", abbr: "CAB" };
+      case "dist": return { border: "#c06010", bg: "#180e03", abbr: "DIST" };
+      case "delay": return { border: "#20c070", bg: "#061a0e", abbr: "DLY" };
+      case "reverb": return { border: "#20a0c0", bg: "#061318", abbr: "REV" };
+      default: return getBlockCat(block.name);
+    }
+  })() : null;
+  const blockModelInfo = block ? ALL_MODELS.find(m => m.id === block.model || m.id === block.model.replace(/Stereo$/,"Mono") || m.id === block.model.replace(/Mono$/,"Stereo")) : null;
+
+  const accentColor = modelInfo?.border ?? blockCat?.border ?? (hasContent ? helixColor.hex : null);
+  const ledColor = accentColor ?? "#16162a";
+  const borderColor = accentColor ? accentColor + "66" : "#1e1e2e";
+  const displayName = labelTrimmed || modelInfo?.name || block?.name || "";
 
   return (
     <button
       onClick={() => onEdit(slot.slot)}
-      className="flex flex-col items-center rounded transition-all"
+      className="rounded transition-all"
       style={{
-        minHeight: 96,
-        padding: "8px 4px 7px",
-        gap: 5,
+        display: "flex", flexDirection: "column", alignItems: "stretch",
         background: "linear-gradient(180deg, #16161f 0%, #0e0e16 100%)",
         border: `1px solid ${borderColor}`,
-        boxShadow: hasContent
+        boxShadow: (hasContent || block)
           ? `0 0 14px ${ledColor}18, inset 0 1px 0 rgba(255,255,255,0.04)`
           : "inset 0 1px 0 rgba(255,255,255,0.02)",
         cursor: "pointer",
+        minWidth: 0,
       }}
-      title={`Stomp ${slot.slot} — click to assign`}
+      title={block ? `${block.name} — stomp ${slot.slot}` : `Stomp ${slot.slot} — click to assign`}
     >
-      {/* Category block or knob */}
-      {modelInfo ? (
-        <div style={{
-          width: 34, height: 34, borderRadius: 7,
-          background: modelInfo.img ? "transparent" : modelInfo.bg,
-          border: `1.5px solid ${modelInfo.border}`,
-          boxShadow: `0 0 8px ${modelInfo.border}44`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          flexShrink: 0, overflow: "hidden",
-        }}>
-          {modelInfo.img
-            ? <img src={`/helix-icons/${modelInfo.img}`} alt={modelInfo.name} style={{ width: 30, height: 30, objectFit: "contain" }} />
-            : <span style={{ fontSize: 8, fontFamily: "monospace", fontWeight: "bold", color: modelInfo.border, letterSpacing: "0.05em" }}>{modelInfo.abbr}</span>
-          }
-        </div>
-      ) : (
-        <div style={{
-          width: 30, height: 30, borderRadius: "50%",
-          background: "radial-gradient(circle at 38% 32%, #2e2e46, #181824)",
-          border: "2px solid #26263a",
-          boxShadow: "0 3px 7px rgba(0,0,0,0.7)",
-          display: "flex", alignItems: "flex-start", justifyContent: "center",
-          paddingTop: 5, flexShrink: 0,
-        }}>
-          <div style={{ width: 2, height: 9, background: "#58587a", borderRadius: 1 }} />
-        </div>
-      )}
-      {/* LED */}
+      {/* Body: icon + LED stacked */}
       <div style={{
-        width: 7, height: 7, borderRadius: "50%",
-        background: hasContent ? ledColor : "#16162a",
-        boxShadow: hasContent ? `0 0 7px 2px ${ledColor}66` : "none",
-        transition: "all 0.2s", flexShrink: 0,
-      }} />
-      {/* Label */}
-      <span style={{
-        fontSize: 8, fontFamily: "monospace", letterSpacing: "0.05em",
-        color: hasContent ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.16)",
-        textAlign: "center", lineHeight: 1.2,
-        maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-        display: "block", padding: "0 2px",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", gap: 5, padding: "10px 6px 8px", flex: 1,
       }}>
-        {slot.label || (modelInfo ? modelInfo.name.slice(0, 10) : `${slot.slot}`)}
-      </span>
-      {/* MIDI badge */}
-      {slot.midiEnabled && (
-        <span style={{ fontSize: 7, fontFamily: "monospace", color: "#4ade80", opacity: 0.7, letterSpacing: "0.04em" }}>
-          CC{slot.midiCC ?? "?"}
+        {/* Icon: manual model > auto block icon > knob */}
+        {modelInfo ? (
+          <div style={{
+            width: 34, height: 34, borderRadius: 7,
+            background: modelInfo.img ? "transparent" : modelInfo.bg,
+            border: `1.5px solid ${modelInfo.border}`,
+            boxShadow: `0 0 8px ${modelInfo.border}44`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0, overflow: "hidden",
+          }}>
+            {modelInfo.img
+              ? <img src={`/helix-icons/${modelInfo.img}`} alt={modelInfo.name} style={{ width: 30, height: 30, objectFit: "contain" }} />
+              : <span style={{ fontSize: 8, fontFamily: "monospace", fontWeight: "bold", color: modelInfo.border, letterSpacing: "0.05em" }}>{modelInfo.abbr}</span>
+            }
+          </div>
+        ) : block && blockCat ? (
+          <div style={{
+            width: 34, height: 34, borderRadius: 7,
+            background: blockModelInfo?.img ? "transparent" : blockCat.bg,
+            border: `1.5px solid ${blockCat.border}`,
+            boxShadow: `0 0 8px ${blockCat.border}55`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0, overflow: "hidden",
+          }}>
+            {blockModelInfo?.img
+              ? <img src={`/helix-icons/${blockModelInfo.img}`} alt={block.name} style={{ width: 30, height: 30, objectFit: "contain" }} />
+              : <span style={{ fontSize: 8, fontFamily: "monospace", fontWeight: "bold", color: blockCat.border, letterSpacing: "0.05em" }}>{blockCat.abbr}</span>
+            }
+          </div>
+        ) : (
+          <div style={{
+            width: 30, height: 30, borderRadius: "50%",
+            background: "radial-gradient(circle at 38% 32%, #2e2e46, #181824)",
+            border: "2px solid #26263a",
+            boxShadow: "0 3px 7px rgba(0,0,0,0.7)",
+            display: "flex", alignItems: "flex-start", justifyContent: "center",
+            paddingTop: 5, flexShrink: 0,
+          }}>
+            <div style={{ width: 2, height: 9, background: "#58587a", borderRadius: 1 }} />
+          </div>
+        )}
+        {/* LED */}
+        <div style={{
+          width: 7, height: 7, borderRadius: "50%",
+          background: (hasContent || block) ? ledColor : "#16162a",
+          boxShadow: (hasContent || block) ? `0 0 7px 2px ${ledColor}66` : "none",
+          transition: "all 0.2s", flexShrink: 0,
+        }} />
+      </div>
+
+      {/* Label strip — always visible at the bottom */}
+      <div style={{
+        background: (hasContent || block) ? ledColor + "22" : "rgba(0,0,0,0.3)",
+        borderTop: `1px solid ${(hasContent || block) ? ledColor + "55" : "rgba(255,255,255,0.08)"}`,
+        padding: "6px 6px 6px",
+        minHeight: 38,
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+        flexShrink: 0,
+      }}>
+        <span style={{
+          fontSize: 11, fontFamily: "monospace", fontWeight: 700,
+          color: displayName ? "#ffffff" : "rgba(255,255,255,0.3)",
+          textAlign: "center", lineHeight: 1.3,
+          whiteSpace: "normal", wordBreak: "break-word",
+        }}>
+          {block?.name || displayName || `FS${slot.slot}`}
         </span>
-      )}
+        {slot.midiEnabled && (
+          <span style={{ fontSize: 7, fontFamily: "monospace", color: "#4ade80", opacity: 0.8, letterSpacing: "0.04em" }}>
+            CC{slot.midiCC ?? "?"}
+          </span>
+        )}
+      </div>
     </button>
   );
 }
@@ -848,8 +950,13 @@ export default function StadiumPage() {
   const [presetSignalChain, setPresetSignalChain] = useState<Array<{slotIdx: number; block: unknown}>>([]);
   const [presetSignalChainB, setPresetSignalChainB] = useState<Array<{slotIdx: number; block: unknown}>>([]);
   const [presetStomps, setPresetStomps] = useState<Array<{slot: number; label: string; color: number}>>([]);
+  const [stompDebug, setStompDebug] = useState<{ topKeys: string[]; stompCount: number; sampleSource?: Record<string, unknown> | null } | null>(null);
   const [modelNames, setModelNames] = useState<Record<number, string>>({});
   const [modelCatalogIds, setModelCatalogIds] = useState<Record<number, string>>({});
+  // HSP flow[1] topology — used to supplement DSP 2 display (sfg_ omits amps in DSP 2)
+  const [hspDsp2, setHspDsp2] = useState<Array<{slot: number; model: string; name: string; type: string; path: number}> | null>(null);
+  // Stomp→block mapping derived from HSP auto-assignment
+  const [stompMap, setStompMap] = useState<{ bankA: Array<{slot:number;model:string;name:string;type:string}>; bankB: Array<{slot:number;model:string;name:string;type:string}> } | null>(null);
   const [editBlobB64, setEditBlobB64] = useState<string>("");
   const [pushStatus, setPushStatus] = useState("");
   // command center
@@ -1017,14 +1124,6 @@ export default function StadiumPage() {
     setTimeout(() => setLoadStatus(""), 5000);
   }, [ip]);
 
-  const loadFromBrowser = useCallback(async (entry: PresetEntry) => {
-    setActiveCid(entry.cid);
-    setDeviceCid(entry.cid);
-    setDevicePresetName(entry.name);
-    setCidInput(String(entry.cid));
-    await loadPresetByCid(entry.cid, parseInt(reqIdInput, 10));
-  }, [loadPresetByCid, reqIdInput]);
-
   // ── device status ───────────────────────────────────────────────────────────
 
   const fetchDeviceStatus = useCallback(async () => {
@@ -1044,8 +1143,19 @@ export default function StadiumPage() {
         if (!isNaN(cid)) {
           setDeviceCid(cid);
           setActiveCid(cid);
-          const p = browserPresetsRef.current.find((x) => x.cid === cid);
-          setDevicePresetName(p?.name ?? "");
+          let name = browserPresetsRef.current.find((x) => x.cid === cid)?.name;
+          if (!name) {
+            // Browser list not loaded yet — silently fetch factory presets to resolve name
+            try {
+              const r = await fetch(`/api/stadium/contents?ip=${encodeURIComponent(ip)}&cid=-1`);
+              const j = await r.json() as { ok: boolean; presets?: PresetEntry[] };
+              if (j.ok && j.presets) {
+                browserPresetsRef.current = j.presets;
+                name = j.presets.find(x => x.cid === cid)?.name;
+              }
+            } catch { /* best-effort */ }
+          }
+          setDevicePresetName(name ?? "");
         }
       }
       if (jSnap.ok && jSnap.value !== undefined) {
@@ -1082,7 +1192,7 @@ export default function StadiumPage() {
     setReadingBuffer(true);
     try {
       const res = await fetch(`/api/stadium/editbuffer?ip=${encodeURIComponent(ip)}`);
-      const j = await res.json() as { ok: boolean; presetCid?: number; rawBlob?: string; data?: unknown; error?: string };
+      const j = await res.json() as { ok: boolean; presetCid?: number; rawBlob?: string; stomps?: Array<{slot:number;label:string;color:number}>; stompDebug?: { topKeys: string[]; stompCount: number; sampleSource?: Record<string, unknown> | null }; data?: unknown; error?: string };
       if (!j.ok) return;
       if (j.rawBlob) setEditBlobB64(j.rawBlob);
       const d = j.data as Record<string, unknown>;
@@ -1113,51 +1223,65 @@ export default function StadiumPage() {
           const pathB = flowArr.length > 1 ? parseFlow(flowArr[1]) : [];
           setPresetSignalChain(pathA);
           setPresetSignalChainB(pathB);
-          const allPairs = [...pathA, ...pathB];
-          const slotPayload = allPairs.flatMap(({ slotIdx, block }) => {
-            const b = block as Record<string,unknown>;
-            const mdls = b?.['mdls'] as Array<Record<string,unknown>> | undefined;
-            const modelId = Array.isArray(mdls) && mdls.length > 0 ? mdls[0]['id__'] as number : null;
-            return modelId != null ? [{ slot: slotIdx, modelId }] : [];
-          });
+          // Build slot payload for name resolution.
+          // flow[1] (DSP 2) slots are offset by 1000 so they don't collide with
+          // HSP slot correlation (which only covers flow[0] slots 0-27). This forces
+          // DSP 2 blocks to fall back to the numeric ID map, avoiding wrong names.
+          const DSP2_OFFSET = 1000;
+          const slotPayload = [
+            ...pathA.flatMap(({ slotIdx, block }) => {
+              const b = block as Record<string,unknown>;
+              const mdls = b?.['mdls'] as Array<Record<string,unknown>> | undefined;
+              const modelId = Array.isArray(mdls) && mdls.length > 0 ? mdls[0]['id__'] as number : null;
+              return modelId != null ? [{ slot: slotIdx, modelId }] : [];
+            }),
+            ...pathB.flatMap(({ slotIdx, block }) => {
+              const b = block as Record<string,unknown>;
+              const mdls = b?.['mdls'] as Array<Record<string,unknown>> | undefined;
+              const modelId = Array.isArray(mdls) && mdls.length > 0 ? mdls[0]['id__'] as number : null;
+              return modelId != null ? [{ slot: slotIdx + DSP2_OFFSET, modelId }] : [];
+            }),
+          ];
           if (slotPayload.length > 0) {
             fetch("/api/stadium/resolve-models", {
               method: "POST", headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ presetName: devicePresetName, slots: slotPayload }),
-            }).then(r => r.json()).then((nm: { ok: boolean; names?: Record<number,string>; catalogIds?: Record<number,string> }) => {
+            }).then(r => r.json()).then((nm: { ok: boolean; names?: Record<number,string>; catalogIds?: Record<number,string>; hspDsp2?: Array<{slot:number;model:string;name:string;type:string;path:number}> | null; stompMap?: { bankA: Array<{slot:number;model:string;name:string;type:string}>; bankB: Array<{slot:number;model:string;name:string;type:string}> } | null }) => {
               if (nm.ok && nm.names) setModelNames(nm.names);
               if (nm.ok && nm.catalogIds) setModelCatalogIds(nm.catalogIds);
+              if (nm.ok) setHspDsp2(nm.hspDsp2 ?? null);
+              if (nm.ok) setStompMap(nm.stompMap ?? null);
             }).catch(() => {});
           }
         }
       } catch { /* optional */ }
-      // Stomps
-      try {
-        const pm = d?.['pm__'] as unknown[] | undefined;
-        if (Array.isArray(pm)) {
-          const slotMap = new Map<number, {label:string;color:number}>();
-          for (const entry of pm) {
-            if (!entry || typeof entry !== 'object') continue;
-            const e = entry as Record<string,unknown>;
-            const key = String(e['key'] ?? '');
-            const m = key.match(/preset\.floorboard\.stomp\.a\.(\d+)\.(label|color)/);
-            if (m) {
-              const slot = parseInt(m[1], 10);
-              const field = m[2];
-              const cur = slotMap.get(slot) ?? { label: '', color: 0 };
-              if (field === 'label') cur.label = String(e['value'] ?? '');
-              if (field === 'color') cur.color = Number(e['value'] ?? 0);
-              slotMap.set(slot, cur);
-            }
-          }
-          if (slotMap.size > 0)
-            setPresetStomps(Array.from(slotMap.entries()).map(([slot, v]) => ({ slot, ...v })));
-        }
-      } catch { /* optional */ }
+      // Stomps — use server-extracted data (source IDs + pm__ fallback)
+      if (j.stompDebug) setStompDebug(j.stompDebug);
+      if (Array.isArray(j.stomps)) {
+        setPresetStomps(j.stomps);
+      }
     } catch { /* ignore */ } finally {
       setReadingBuffer(false);
     }
   }, [ip, devicePresetName]);
+
+  const loadFromBrowser = useCallback(async (entry: PresetEntry) => {
+    setActiveCid(entry.cid);
+    setDeviceCid(entry.cid);
+    setDevicePresetName(entry.name);
+    setCidInput(String(entry.cid));
+    setPresetSignalChain([]);
+    setPresetSignalChainB([]);
+    setHspDsp2(null);
+    setStompMap(null);
+    setPresetStomps([]);
+    setStompDebug(null);
+    setModelNames({});
+    setModelCatalogIds({});
+    await loadPresetByCid(entry.cid, parseInt(reqIdInput, 10));
+    await new Promise(r => setTimeout(r, 600));
+    await readEditBuffer();
+  }, [loadPresetByCid, readEditBuffer, reqIdInput]);
 
   const setSnapshotOnDevice = useCallback(async (index: number) => {
     setSnapshotIdx(index);
@@ -1645,32 +1769,80 @@ export default function StadiumPage() {
             );
           };
 
-          // Render a path as a flex row of blocks with connectors.
-          const renderPathRow = (chain: typeof presetSignalChain) => (
-            <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-              {chain.map(({ slotIdx, block }, bi) => (
-                <div key={bi} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                  {renderBlock(slotIdx, block, bi)}
-                  {bi < chain.length - 1 && (
-                    <div style={{ width: LINE_W, height: 2, background: LINE_COLOR, flexShrink: 0 }} />
-                  )}
-                </div>
-              ))}
-            </div>
+          // Empty slot placeholder for unoccupied grid positions
+          const renderEmptySlot = () => (
+            <div style={{
+              width: BLK, height: BLK, borderRadius: 22,
+              border: "1px dashed rgba(255,255,255,0.05)",
+              flexShrink: 0,
+            }} />
           );
 
-          // ── Dual-path layout ───────────────────────────────────────────────
-          // Filter Path B to only real effect blocks (drop None/empty slots without a modelId).
-          const pathBReal = presetSignalChainB.filter(({ block }) => {
+          // Render a path at fixed slot positions (always 14 slots).
+          // slotOffset: 0 for top arm (slots 0-13), 14 for bottom arm (slots 14-27 → displayed as 0-13).
+          const renderPathRow = (chain: typeof presetSignalChain, slotOffset = 0) => {
+            const MAX = 14;
+            const slotMap = new Map(chain.map(e => [e.slotIdx - slotOffset, e]));
+            return (
+              <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+                {Array.from({ length: MAX }, (_, si) => {
+                  const e = slotMap.get(si);
+                  return (
+                    <div key={si} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+                      {e ? renderBlock(e.slotIdx, e.block, si) : renderEmptySlot()}
+                      {si < MAX - 1 && <div style={{ width: LINE_W, height: 2, background: LINE_COLOR, flexShrink: 0 }} />}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          };
+
+          // ── 4-row signal chain layout ─────────────────────────────────────
+          // Each DSP (flow) has 2 arms: slots 0-13 (top arm) and 14-27 (bottom parallel arm).
+          // flow[0] = DSP 1 (rows 1+2), flow[1] = DSP 2 (rows 3+4).
+          // The bottom arm exists only when a Split block is used within that DSP.
+
+          const isRealBlock = (block: unknown): boolean => {
             const b = block as Record<string, unknown>;
             const mdls = b["mdls"] as Array<Record<string, unknown>> | undefined;
-            return Array.isArray(mdls) && mdls.length > 0 && (mdls[0]["id__"] as number) != null;
-          });
-          const hasDualPath = pathBReal.length > 0;
+            if (!Array.isArray(mdls) || mdls.length === 0) return false;
+            const id = mdls[0]["id__"];
+            if (typeof id !== "number" || id === 0) return false;
+            const resolved = modelNames[id];
+            if (resolved !== undefined && /^(none|no\s*cab)$/i.test(resolved)) return false;
+            return true;
+          };
 
-          const UNIT = BLK + LINE_W; // 172 px per displayed block
+          // DSP 1 (flow[0]): top arm = slots 0-13, bottom arm = slots 14-27
+          const pathAReal      = presetSignalChain.filter(({ slotIdx }) => slotIdx < 14);
+          const path1BFiltered = presetSignalChain.filter(({ slotIdx, block }) => slotIdx >= 14 && isRealBlock(block));
 
-          // Helper: check if a block in Path A is a split or join by its resolved name / catalogId.
+          // DSP 2 (flow[1]): sfg_ fallback (used when no HSP available)
+          const path2AFiltered = presetSignalChainB.filter(({ slotIdx, block }) => slotIdx < 14 && isRealBlock(block));
+          const path2BFiltered = presetSignalChainB.filter(({ slotIdx, block }) => slotIdx >= 14 && isRealBlock(block));
+
+          // HSP topology for DSP 2 — more accurate than sfg_ (sfg_ omits amp blocks in DSP 2).
+          // Skip "InputNone" routing connector; keep split, amps, cabs, join, fx, output.
+          type HspBlk = { slot: number; model: string; name: string; type: string; path: number };
+          const hspTop: HspBlk[] | null = hspDsp2
+            ? hspDsp2.filter(b => b.path === 0 && !b.model.startsWith("P35_Input")).sort((a, b) => a.slot - b.slot)
+            : null;
+          const hspBot: HspBlk[] | null = hspDsp2
+            ? hspDsp2.filter(b => b.path === 1).sort((a, b) => a.slot - b.slot)
+            : null;
+
+          const hasDSP1Split = path1BFiltered.length > 0;
+          const hasDSP2      = hspDsp2
+            ? (hspTop && hspTop.length > 0) || (hspBot && hspBot.length > 0)
+            : path2AFiltered.length > 0 || path2BFiltered.length > 0;
+          const hasDSP2Split = hspDsp2
+            ? !!(hspBot && hspBot.length > 0)
+            : path2BFiltered.length > 0;
+
+          const UNIT = BLK + LINE_W;
+          const BRIDGE_H = 44;
+
           const blockMatchesLabel = (block: unknown, re: RegExp) => {
             const b = block as Record<string, unknown>;
             const mdls = b["mdls"] as Array<Record<string, unknown>> | undefined;
@@ -1679,28 +1851,108 @@ export default function StadiumPage() {
             return re.test(modelNames[modelId] ?? "") || re.test(modelCatalogIds[modelId] ?? "");
           };
 
-          // Find split and join display indices in Path A by block label.
-          const splitDispIdx = presetSignalChain.findIndex(({ block }) => blockMatchesLabel(block, /split/i));
-          const joinDispIdx  = presetSignalChain.findIndex(({ block }) => blockMatchesLabel(block, /\bjoin\b|merge/i));
+          // Map HSP block type → category (guarantees correct colors for amps/cabs
+          // even when the model name string doesn't match getBlockCat patterns)
+          const hspTypeToCat = (type: string) => {
+            switch (type) {
+              case "amp": case "pre": return { border: "#e03030", bg: "#200808", abbr: "AMP" };
+              case "cab": return { border: "#b04820", bg: "#180c05", abbr: "CAB" };
+              case "dist": return { border: "#c06010", bg: "#180e03", abbr: "DIST" };
+              case "delay": return { border: "#20c070", bg: "#061a0e", abbr: "DLY" };
+              case "reverb": return { border: "#20a0c0", bg: "#061318", abbr: "REV" };
+              case "split": return { border: "#4a4a6a", bg: "#0e0e1a", abbr: "SPL" };
+              case "join": return { border: "#4a4a6a", bg: "#0e0e1a", abbr: "MRG" };
+              case "input": return { border: "#4a4a6a", bg: "#0e0e1a", abbr: "IN" };
+              case "output": return { border: "#4a4a6a", bg: "#0e0e1a", abbr: "OUT" };
+              default: return null;
+            }
+          };
 
-          // Offset in px for Path B row (starts at the split block column).
-          // Falls back to 0 if split not yet resolved (model names load async after chain).
-          const pathBOffsetPx = splitDispIdx > 0 ? splitDispIdx * UNIT : 0;
+          // Renderer for HSP-sourced blocks (uses model string directly, not numeric ID)
+          const renderHspBlock = (hb: HspBlk, key: number | string) => {
+            const name = modelDisplayName(hb.model) || hb.name;
+            const cat  = hspTypeToCat(hb.type) ?? getBlockCat(name);
+            const def  = lookupDef(hb.model);
+            const img  = def?.img ?? null;
+            return (
+              <div key={key} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6, flexShrink:0 }}>
+                <div style={{
+                  width:BLK, height:BLK, borderRadius:22, background:"#000",
+                  border:`2px solid ${cat.border}`,
+                  boxShadow:`0 0 28px ${cat.border}40, inset 0 0 36px ${cat.border}0c`,
+                  display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+                  gap:4, flexShrink:0, overflow:"hidden",
+                }}>
+                  {img
+                    ? <img src={`/helix-icons/${img}`} alt={name} style={{ width:116, height:116, objectFit:"contain" }} />
+                    : <span style={{ fontSize:18, fontFamily:"monospace", fontWeight:"bold", color:cat.border, letterSpacing:"0.08em" }}>{cat.abbr}</span>
+                  }
+                </div>
+                <span style={{
+                  fontSize:11, fontFamily:"monospace", color:"rgba(255,255,255,0.85)",
+                  textAlign:"center", lineHeight:1.3, maxWidth:BLK,
+                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontWeight:600,
+                }}>{name}</span>
+              </div>
+            );
+          };
 
-          // Centre-x of split and join columns (for vertical bridge lines).
-          // The "A"/"B" label spans ~12 px before the first block, accounted for in both paths equally.
-          const splitCX = splitDispIdx > 0 ? splitDispIdx * UNIT + BLK / 2 - 1 : pathBOffsetPx + BLK / 2 - 1;
-          const joinCX  = joinDispIdx  > 0 ? joinDispIdx  * UNIT + BLK / 2 - 1 : -1;
-          const BRIDGE_H = 44;
+          // Render an HSP-sourced row at fixed slot positions.
+          // slotOffset: 0 for path=0 (slots 0-13), 14 for path=1 (slots 14-27 → displayed as 0-13).
+          const renderHspRow = (blocks: HspBlk[], slotOffset = 0) => {
+            const MAX = 14;
+            const slotMap = new Map(blocks.map(b => [b.slot - slotOffset, b]));
+            return (
+              <div style={{ display:"flex", alignItems:"center", gap:0 }}>
+                {Array.from({ length: MAX }, (_, si) => {
+                  const hb = slotMap.get(si);
+                  return (
+                    <div key={si} style={{ display:"flex", alignItems:"center", flexShrink:0 }}>
+                      {hb ? renderHspBlock(hb, si) : renderEmptySlot()}
+                      {si < MAX - 1 && <div style={{ width:LINE_W, height:2, background:LINE_COLOR, flexShrink:0 }} />}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          };
+
+          // Find split/join SLOT NUMBERS in each DSP's top arm (for bridge x-position).
+          // Using slot numbers (not array indices) so bridge aligns with the fixed grid.
+          const dsp1SplitSlot = pathAReal.find(({ block }) => blockMatchesLabel(block, /split/i))?.slotIdx ?? -1;
+          const dsp1JoinSlot  = pathAReal.find(({ block }) => blockMatchesLabel(block, /\bjoin\b|merge/i))?.slotIdx ?? -1;
+          const dsp2SplitSlot = hspTop
+            ? (hspTop.find(b => /split/i.test(b.name) || /AppDSPSplit/.test(b.model))?.slot ?? -1)
+            : (path2AFiltered.find(({ block }) => blockMatchesLabel(block, /split/i))?.slotIdx ?? -1);
+          const dsp2JoinSlot  = hspTop
+            ? (hspTop.find(b => /\bjoin\b|merge/i.test(b.name) || /AppDSPJoin|AppDSPMixer/.test(b.model))?.slot ?? -1)
+            : (path2AFiltered.find(({ block }) => blockMatchesLabel(block, /\bjoin\b|merge/i))?.slotIdx ?? -1);
+
+          const renderBridge = (splitSlot: number, joinSlot: number) => {
+            const splitCX = splitSlot * UNIT + BLK / 2 - 1;
+            const joinCX  = joinSlot >= 0 ? joinSlot * UNIT + BLK / 2 - 1 : -1;
+            return (
+              <div style={{ position: "relative", height: BRIDGE_H, flexShrink: 0 }}>
+                <div style={{ position: "absolute", left: splitCX, top: 0, width: 2, height: BRIDGE_H, background: LINE_COLOR }} />
+                {joinCX >= 0 && (
+                  <div style={{ position: "absolute", left: joinCX, top: 0, width: 2, height: BRIDGE_H, background: LINE_COLOR }} />
+                )}
+              </div>
+            );
+          };
+
+          const dsp2TopLen = hspTop ? hspTop.length : path2AFiltered.length;
+          const dsp2BotLen = hspBot ? hspBot.length : path2BFiltered.length;
+          const totalBlocks = pathAReal.length + path1BFiltered.length + dsp2TopLen + dsp2BotLen;
 
           return (
             <div className="flex flex-col rounded-xl overflow-hidden" style={{ background: "#000", border: "1px solid #1a1a28" }}>
               {/* header */}
               <div className="flex items-center gap-3 px-4 py-2 border-b" style={{ borderColor: "#111120" }}>
                 <span className="text-xs font-mono tracking-widest" style={{ color: "#3a3a58" }}>SIGNAL CHAIN</span>
-                {presetSignalChain.length > 0 && (
+                {totalBlocks > 0 && (
                   <span className="text-xs font-mono" style={{ color: "#252538" }}>
-                    {presetSignalChain.length}{hasDualPath ? ` + ${pathBReal.length}` : ''} blocks
+                    {totalBlocks} blocks{hasDSP2 ? " · 2 DSP" : ""}
                   </span>
                 )}
                 <button
@@ -1718,7 +1970,7 @@ export default function StadiumPage() {
                 </button>
                 {presetSignalChain.length > 0 && (
                   <button
-                    onClick={() => { setPresetSignalChain([]); setPresetSignalChainB([]); setModelNames({}); setModelCatalogIds({}); }}
+                    onClick={() => { setPresetSignalChain([]); setPresetSignalChainB([]); setHspDsp2(null); setModelNames({}); setModelCatalogIds({}); }}
                     className="ml-auto text-xs font-mono hover:opacity-100 transition-opacity"
                     style={{ color: "#2e2e48", opacity: 0.5 }}
                   >CLEAR</button>
@@ -1729,32 +1981,29 @@ export default function StadiumPage() {
               <div className="overflow-x-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#1e1e30 transparent" }}>
                 <div style={{ position: "relative", display: "inline-flex", flexDirection: "column", gap: 0, padding: "20px 24px", minWidth: "max-content" }}>
 
-                  {/* ── Path A row ────────────────────────────────────────── */}
-                  {renderPathRow(presetSignalChain)}
+                  {/* ── DSP 1 Row 1: flow[0] slots 0-13 (fixed 14-slot grid) ── */}
+                  {pathAReal.length > 0 && renderPathRow(pathAReal)}
 
-                  {/* ── Bridge: vertical connectors at split and join ──────── */}
-                  {hasDualPath && (
-                    <div style={{ position: "relative", height: BRIDGE_H, flexShrink: 0 }}>
-                      {/* Vertical drop at split */}
-                      <div style={{ position: "absolute", left: splitCX, top: 0, width: 2, height: BRIDGE_H, background: LINE_COLOR }} />
-                      {/* Vertical rise at join */}
-                      {joinCX >= 0 && (
-                        <div style={{ position: "absolute", left: joinCX, top: 0, width: 2, height: BRIDGE_H, background: LINE_COLOR }} />
-                      )}
-                      {/* "A" label — top left of bridge */}
-                      <span style={{ position: "absolute", left: 0, top: -BLK / 2 - 2, fontSize: 9, fontFamily: "monospace", color: "#2e2e48", fontWeight: 700 }}>A</span>
-                      {/* "B" label — at split column, bottom */}
-                      {hasDualPath && splitCX >= 0 && (
-                        <span style={{ position: "absolute", left: splitCX + 8, bottom: -BLK / 2 - 2, fontSize: 9, fontFamily: "monospace", color: "#2e2e48", fontWeight: 700 }}>B</span>
-                      )}
-                    </div>
+                  {/* ── DSP 1 Row 2: parallel bottom arm slots 14-27 ──────── */}
+                  {hasDSP1Split && dsp1SplitSlot >= 0 && renderBridge(dsp1SplitSlot, dsp1JoinSlot)}
+                  {hasDSP1Split && renderPathRow(path1BFiltered, 14)}
+
+                  {/* ── Separator between DSP 1 and DSP 2 ─────────────────── */}
+                  {pathAReal.length > 0 && hasDSP2 && (
+                    <div style={{ height: 1, background: "#1a1a28", margin: "16px 0", flexShrink: 0 }} />
                   )}
 
-                  {/* ── Path B row (offset to split column) ──────────────── */}
-                  {hasDualPath && (
-                    <div style={{ paddingLeft: pathBOffsetPx }}>
-                      {renderPathRow(pathBReal)}
-                    </div>
+                  {/* ── DSP 2 Row 3: HSP topology (preferred) or sfg_ fallback ── */}
+                  {hasDSP2 && (hspTop && hspTop.length > 0
+                    ? renderHspRow(hspTop)
+                    : path2AFiltered.length > 0 && renderPathRow(path2AFiltered)
+                  )}
+
+                  {/* ── DSP 2 Row 4: parallel bottom arm slots 14-27 ──────── */}
+                  {hasDSP2Split && dsp2SplitSlot >= 0 && renderBridge(dsp2SplitSlot, dsp2JoinSlot)}
+                  {hasDSP2Split && (hspBot && hspBot.length > 0
+                    ? renderHspRow(hspBot, 14)
+                    : renderPathRow(path2BFiltered, 14)
                   )}
 
                 </div>
@@ -1763,12 +2012,21 @@ export default function StadiumPage() {
           );
         })()}
 
-        {/* visual pedalboard */}
-        {presetStomps.length > 0 && (
+        {/* stomp debug — only when extraction finds nothing */}
+        {stompDebug && stompDebug.stompCount === 0 && (
+          <div className="px-3 py-2 rounded text-xs font-mono break-all" style={{ background: "#0e0e1a", border: "1px solid #2a1a1a", color: "#ff6b1a" }}>
+            STOMP DEBUG — 0 sources found · blob keys: {stompDebug.topKeys.join(" · ")}
+            {stompDebug.sampleSource && <span> · sample: {JSON.stringify(stompDebug.sampleSource)}</span>}
+          </div>
+        )}
+
+        {/* visual pedalboard — show whenever a preset has been read */}
+        {presetSignalChain.length > 0 && (
           <Pedalboard
             stomps={presetStomps}
             ip={ip}
             devicePresetName={devicePresetName}
+            stompMap={stompMap}
             onStompsChange={setPresetStomps}
           />
         )}
@@ -2198,7 +2456,7 @@ export default function StadiumPage() {
                         }
                       }
                     } catch { /* ignore */ }
-                    // Extract stomp footswitch labels from pm__
+                    // Extract stomp footswitch labels from pm__ (both stomp.a and stomp.b)
                     try {
                       const d = j.data as Record<string, unknown>;
                       const pm = d?.['pm__'] as unknown[] | undefined;
@@ -2209,15 +2467,14 @@ export default function StadiumPage() {
                           const e = entry as Record<string, unknown>;
                           const key = String(e['key_'] ?? '');
                           const val = e['val_'];
-                          const lm = key.match(/^preset\.floorboard\.stomp\.a\.(\d+)\.label$/);
-                          if (lm) {
-                            const s = parseInt(lm[1], 10);
-                            slotMap.set(s, { label: String(val ?? ''), color: slotMap.get(s)?.color ?? 1 });
-                          }
-                          const cm = key.match(/^preset\.floorboard\.stomp\.a\.(\d+)\.color$/);
-                          if (cm) {
-                            const s = parseInt(cm[1], 10);
-                            slotMap.set(s, { label: slotMap.get(s)?.label ?? '', color: Number(val ?? 1) });
+                          const m = key.match(/^preset\.floorboard\.stomp\.(a|b)\.(\d+)\.(label|color)$/);
+                          if (m) {
+                            const bankOffset = m[1] === 'b' ? 12 : 0;
+                            const s = parseInt(m[2], 10) + bankOffset;
+                            const cur = slotMap.get(s) ?? { label: '', color: 0 };
+                            if (m[3] === 'label') cur.label = String(val ?? '');
+                            if (m[3] === 'color') cur.color = Number(val ?? 0);
+                            slotMap.set(s, cur);
                           }
                         }
                         setPresetStomps(

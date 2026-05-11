@@ -84,25 +84,97 @@ function extractHspSlots(flow: unknown[]): Map<number, string> {
 
 const SAMPLES_DIR = join(process.cwd(), "samples");
 
-function loadHspSlots(presetName: string): Map<number, string> | null {
+export interface HspBlock {
+  slot: number;
+  model: string;
+  name: string;
+  type: string;
+  path: number;
+}
+
+function findHspFile(presetName: string): string | null {
   try {
-    // Try exact match, then prefix match (e.g. "Brit MegaGuitar" → "Brit MegaGuitar.hsp")
     const files = readdirSync(SAMPLES_DIR).filter(f => f.endsWith(".hsp"));
     const target = presetName.trim().toLowerCase();
-    const match = files.find(f => {
+    return files.find(f => {
       const n = f.replace(/\.hsp$/i, "").toLowerCase();
       return n === target || n.replace(/[_\s-]+/g, "") === target.replace(/[_\s-]+/g, "");
-    });
-    if (!match) return null;
+    }) ?? null;
+  } catch { return null; }
+}
 
+function parseHspFlow(presetName: string): { flow?: unknown[] } | null {
+  try {
+    const match = findHspFile(presetName);
+    if (!match) return null;
     const buf = readFileSync(join(SAMPLES_DIR, match));
-    const start = buf.indexOf(0x7b); // find '{'
+    const start = buf.indexOf(0x7b);
     if (start < 0) return null;
     const json = JSON.parse(buf.slice(start).toString("utf8")) as { preset?: { flow?: unknown[] } };
-    const flow = json?.preset?.flow;
-    if (!Array.isArray(flow)) return null;
-    return extractHspSlots(flow);
+    return json?.preset ?? null;
   } catch { return null; }
+}
+
+function loadHspSlots(presetName: string): Map<number, string> | null {
+  const preset = parseHspFlow(presetName);
+  if (!preset?.flow) return null;
+  return extractHspSlots(preset.flow);
+}
+
+// Extract all blocks from a specific HSP flow for display topology.
+function extractFlowTopology(flowObj: unknown): HspBlock[] {
+  if (!flowObj || typeof flowObj !== "object") return [];
+  const blocks: HspBlock[] = [];
+  for (const [key, blkObj] of Object.entries(flowObj as Record<string, unknown>)) {
+    if (!key.match(/^b\d+$/) || !blkObj || typeof blkObj !== "object") continue;
+    const bk = blkObj as Record<string, unknown>;
+    const slotNum = parseInt(key.slice(1), 10);
+    const slots = bk["slot"] as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(slots) && slots.length > 0 && typeof slots[0]?.["model"] === "string") {
+      const model = slots[0]["model"] as string;
+      blocks.push({
+        slot: slotNum,
+        model,
+        name: modelStringToName(model),
+        type: (bk["type"] as string) ?? "",
+        path: (bk["path"] as number) ?? 0,
+      });
+    }
+  }
+  return blocks;
+}
+
+function loadHspDsp2(presetName: string): HspBlock[] | null {
+  const preset = parseHspFlow(presetName);
+  const flow = preset?.flow;
+  if (!Array.isArray(flow) || flow.length < 2) return null;
+  return extractFlowTopology(flow[1]);
+}
+
+export interface StompEntry {
+  slot: number;
+  model: string;
+  name: string;
+  type: string;
+}
+
+// Auto-assignment: assignable blocks per flow sorted by slot → stomp bank order.
+// Routing-only blocks (input/output/split/join/merge) are not footswitch-assignable.
+const NON_ASSIGNABLE = new Set(["input", "output", "split", "join", "merge"]);
+
+function loadStompMap(presetName: string): { bankA: StompEntry[]; bankB: StompEntry[] } | null {
+  const preset = parseHspFlow(presetName);
+  const flow = preset?.flow;
+  if (!Array.isArray(flow)) return null;
+  const toEntries = (flowObj: unknown): StompEntry[] =>
+    extractFlowTopology(flowObj)
+      .filter(b => !NON_ASSIGNABLE.has(b.type))
+      .sort((a, b) => a.slot - b.slot)
+      .map(b => ({ slot: b.slot, model: b.model, name: b.name, type: b.type }));
+  return {
+    bankA: flow[0] ? toEntries(flow[0]) : [],
+    bankB: flow.length > 1 && flow[1] ? toEntries(flow[1]) : [],
+  };
 }
 
 // POST /api/stadium/resolve-models
@@ -120,7 +192,9 @@ export async function POST(req: NextRequest) {
     return Response.json({ ok: false, error: "bad JSON" }, { status: 400 });
   }
 
-  const hspSlots = presetName ? loadHspSlots(presetName) : null;
+  const hspSlots  = presetName ? loadHspSlots(presetName)  : null;
+  const hspDsp2   = presetName ? loadHspDsp2(presetName)   : null;
+  const stompMap  = presetName ? loadStompMap(presetName)  : null;
   const names: Record<number, string> = {};
   const catalogIds: Record<number, string> = {};
 
@@ -148,5 +222,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return Response.json({ ok: true, names, catalogIds, hspFound: hspSlots !== null });
+  return Response.json({ ok: true, names, catalogIds, hspFound: hspSlots !== null, hspDsp2, stompMap });
 }
