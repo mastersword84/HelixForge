@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import modelDefsRaw from "@/lib/helix-model-defs.json";
+import allModelsRaw from "@/lib/helix-all-models.json";
 
 // ── Helix color palette (matches companion app colour names) ─────────────────
 const HELIX_COLORS: Array<{ id: number; name: string; hex: string }> = [
@@ -19,8 +21,95 @@ const HELIX_COLORS: Array<{ id: number; name: string; hex: string }> = [
   { id: 11, name: "Mint",    hex: "#66ffaa" },
 ];
 
+// ── Block category → color + abbreviation ─────────────────────────────────────
+function getBlockCat(label: string): { border: string; bg: string; abbr: string } {
+  const l = label.toLowerCase();
+  if (l === "input")  return { border: "#4a4a6a", bg: "#0e0e1a", abbr: "IN" };
+  if (l === "output") return { border: "#4a4a6a", bg: "#0e0e1a", abbr: "OUT" };
+  if (/\bamp\b|twin|deluxe|princeton|plexi|jcm|mesa|marshall|vox|ac\d|fender|friedman|matchless|dumble|rectif/i.test(l))
+    return { border: "#e03030", bg: "#200808", abbr: "AMP" };
+  if (/\bcab\b/i.test(l))
+    return { border: "#b04820", bg: "#180c05", abbr: "CAB" };
+  if (/dist|fuzz|drive|overdrive|boost|screamer|rat\b|klon|muff/i.test(l))
+    return { border: "#c06010", bg: "#180e03", abbr: "DIST" };
+  if (/delay|echo|slapback/i.test(l))
+    return { border: "#20c070", bg: "#061a0e", abbr: "DLY" };
+  if (/reverb|plate|hall|spring|room|cathedral/i.test(l))
+    return { border: "#20a0c0", bg: "#061318", abbr: "REV" };
+  if (/chorus/i.test(l))
+    return { border: "#4060e0", bg: "#08081e", abbr: "CHO" };
+  if (/flanger/i.test(l))
+    return { border: "#6040c0", bg: "#0e0818", abbr: "FLG" };
+  if (/phaser/i.test(l))
+    return { border: "#8030b0", bg: "#120814", abbr: "PHS" };
+  if (/pitch|octav|whammy|harmony/i.test(l))
+    return { border: "#9030c0", bg: "#14081c", abbr: "PCH" };
+  if (/wah|filter/i.test(l))
+    return { border: "#c0a000", bg: "#181200", abbr: "WAH" };
+  if (/compressor|comp\b|dynamics/i.test(l))
+    return { border: "#40a040", bg: "#081408", abbr: "CMP" };
+  if (/\beq\b/i.test(l))
+    return { border: "#4070c0", bg: "#080e18", abbr: "EQ" };
+  if (/tremolo|trem\b/i.test(l))
+    return { border: "#c040a0", bg: "#180810", abbr: "TRM" };
+  if (/volume|vol\b/i.test(l))
+    return { border: "#606090", bg: "#0c0c16", abbr: "VOL" };
+  if (/looper/i.test(l))
+    return { border: "#00b060", bg: "#001a0c", abbr: "LP" };
+  return { border: "#3a3a5a", bg: "#0e0e1a", abbr: "FX" };
+}
+
+// ── Catalog model helpers ─────────────────────────────────────────────────────
+interface CatalogModel { id: string; name: string; abbr: string; cat: string; border: string; bg: string; img: string | null; }
+
+const MODEL_DEFS = modelDefsRaw as Record<string, { name: string; short: string; cls: string; img: string | null }>;
+
+// Official cat abbreviation → getBlockCat hint
+const CAT_HINT: Record<string, string> = {
+  AMP: 'amp', PRE: 'amp', CAB: 'cab', DIST: 'dist', DLY: 'delay',
+  REV: 'reverb', MOD: 'chorus', DYN: 'compressor', EQ: 'eq',
+  PCH: 'pitch', WAH: 'wah', VOL: 'volume', LP: 'looper',
+  FXL: 'fx loop', IN: 'input', OUT: 'output', SPL: 'fx', MRG: 'fx',
+};
+
+function lookupDef(id: string) {
+  return MODEL_DEFS[id]
+    ?? MODEL_DEFS[id.replace(/Stereo$/, 'Mono')]
+    ?? MODEL_DEFS[id.replace(/Mono$/, 'Stereo')]
+    ?? null;
+}
+
+function modelDisplayName(id: string): string {
+  const d = lookupDef(id);
+  if (d) return d.name;
+  let s = id.replace(/^(HD2_|Agoura_|VIC_|HX2_|P35_|EPIC_)/, '');
+  s = s.replace(/(Mono|Stereo)$/, '');
+  const strips = ['CabMicIr','Cab','AmpCab','Amp','Dist','Delay','DL4','Reverb','Chorus','Phaser','Flanger','Pitch','VolPan','Vol','Dyn','EQ','Eq','Gate','Wah','Filter'];
+  for (const p of strips) { if (s.startsWith(p)) { s = s.slice(p.length); break; } }
+  return s.replace(/([A-Z][a-z]+)/g,' $1').replace(/([A-Z]+)(?=[A-Z][a-z])/g,' $1').replace(/([a-z])(\d)/g,'$1 $2').replace(/(\d)([A-Z])/g,'$1 $2').trim() || id;
+}
+
+const ALL_MODELS: CatalogModel[] = (allModelsRaw as Array<{ id: string; name: string; short: string; cat: string; abbr: string; img: string | null }>)
+  .map(m => {
+    const hint = CAT_HINT[m.abbr] ?? m.name;
+    const info = getBlockCat(hint);
+    // For AMP/PRE use the abbr override so they stay distinct
+    const abbr = m.abbr;
+    return { id: m.id, name: m.name, abbr, cat: m.cat, border: info.border, bg: info.bg, img: m.img };
+  });
+
 // ── Visual Pedalboard component ──────────────────────────────────────────────
-interface StompSlot { slot: number; label: string; color: number; }
+interface StompSlot {
+  slot: number;
+  label: string;
+  color: number;
+  model?: string;       // catalog key e.g. "HD2_DistScream808Mono"
+  midiEnabled?: boolean;
+  midiCC?: number;      // 0-127
+  midiCh?: number;      // 1-16
+  midiMin?: number;     // 0-127
+  midiMax?: number;     // 0-127
+}
 interface PedalboardProps {
   stomps: StompSlot[];
   ip: string;
@@ -29,9 +118,11 @@ interface PedalboardProps {
 }
 
 function Pedalboard({ stomps, ip, devicePresetName, onStompsChange }: PedalboardProps) {
-  const [editingSlot, setEditingSlot] = useState<number | null>(null);
-  const [editLabel, setEditLabel] = useState("");
-  const [editColor, setEditColor] = useState(0);
+  const [pickerSlot, setPickerSlot] = useState<number | null>(null);
+  const [pickerTab, setPickerTab] = useState<'block'|'midi'|'label'>('block');
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [pickerCat, setPickerCat] = useState('ALL');
+  const [draft, setDraft] = useState<StompSlot | null>(null);
   const [pushing, setPushing] = useState(false);
   const [pushStatus, setPushStatus] = useState("");
   const [captureMode, setCaptureMode] = useState(false);
@@ -40,27 +131,27 @@ function Pedalboard({ stomps, ip, devicePresetName, onStompsChange }: Pedalboard
   const [captureStatus, setCaptureStatus] = useState("");
   const [capturing, setCapturing] = useState(false);
 
-  // Expand stomps to always show 8 slots (Helix standard layout)
-  const maxSlot = Math.max(7, ...stomps.map(s => s.slot));
+  // Expand stomps to always show 12 slots (6+6 companion app layout)
+  const maxSlot = Math.max(11, ...stomps.map(s => s.slot));
   const slots: StompSlot[] = Array.from({ length: maxSlot + 1 }, (_, i) => {
     const found = stomps.find(s => s.slot === i);
     return found ?? { slot: i, label: "", color: 0 };
   });
 
-  function openEdit(slot: number) {
-    const s = slots[slot];
-    setEditLabel(s.label);
-    setEditColor(s.color);
-    setEditingSlot(slot);
+  function openPicker(slot: number) {
+    setDraft({ ...slots[slot] });
+    setPickerTab('block');
+    setPickerSearch('');
+    setPickerCat('ALL');
+    setPickerSlot(slot);
   }
 
-  function applyEdit() {
-    if (editingSlot == null) return;
-    const updated = slots.map(s =>
-      s.slot === editingSlot ? { ...s, label: editLabel, color: editColor } : s
-    ).filter(s => s.label || stomps.some(orig => orig.slot === s.slot));
+  function applyPicker() {
+    if (pickerSlot == null || !draft) return;
+    const updated = slots.map(s => s.slot === pickerSlot ? { ...draft } : s)
+      .filter(s => s.label || s.model || stomps.some(o => o.slot === s.slot));
     onStompsChange(updated);
-    setEditingSlot(null);
+    setPickerSlot(null);
   }
 
   async function pushToDevice() {
@@ -107,18 +198,18 @@ function Pedalboard({ stomps, ip, devicePresetName, onStompsChange }: Pedalboard
     finally { setCapturing(false); }
   }
 
-  // Split into two rows of 4 (Helix-style layout)
-  const rowA = slots.slice(0, 4);
-  const rowB = slots.slice(4, 8);
+  // Split into two rows of 6 (companion app layout)
+  const rowA = slots.slice(0, 6);
+  const rowB = slots.slice(6, 12);
 
   return (
     <div
-      className="flex flex-col gap-3 px-3 py-3 rounded"
-      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.1)" }}
+      className="flex flex-col gap-4 px-4 py-4 rounded-xl"
+      style={{ background: "#0d0d16", border: "1px solid #1e1e30" }}
     >
       {/* Header */}
       <div className="flex items-center gap-3">
-        <span className="text-xs font-mono tracking-widest opacity-40">PEDALBOARD</span>
+        <span className="text-xs font-mono tracking-widest" style={{ color: "#5a5a80" }}>STOMP SWITCHES</span>
         <button
           onClick={pushToDevice}
           disabled={pushing}
@@ -200,116 +291,318 @@ function Pedalboard({ stomps, ip, devicePresetName, onStompsChange }: Pedalboard
         </div>
       )}
 
-      {/* Row A */}
-      <div className="flex flex-col gap-1">
-        <span className="text-xs font-mono opacity-25 tracking-widest">ROW A</span>
-        <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-          {rowA.map((s) => <StompButton key={s.slot} slot={s} onEdit={openEdit} />)}
+      {/* Stomp A */}
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-mono tracking-widest" style={{ color: "#3a3a55" }}>STOMP A</span>
+        <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(6, 1fr)" }}>
+          {rowA.map((s) => <StompButton key={s.slot} slot={s} onEdit={openPicker} />)}
         </div>
       </div>
 
-      {/* Row B */}
-      {rowB.some(s => s) && (
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-mono opacity-25 tracking-widest">ROW B</span>
-          <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-            {rowB.map((s) => <StompButton key={s.slot} slot={s} onEdit={openEdit} />)}
-          </div>
+      {/* Stomp B */}
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-mono tracking-widest" style={{ color: "#3a3a55" }}>STOMP B</span>
+        <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(6, 1fr)" }}>
+          {rowB.map((s) => <StompButton key={s.slot} slot={s} onEdit={openPicker} />)}
         </div>
-      )}
+      </div>
 
-      {/* Edit modal */}
-      {editingSlot != null && (
-        <div
-          className="flex flex-col gap-3 p-3 rounded mt-1"
-          style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.15)" }}
-        >
-          <span className="text-xs font-mono opacity-50">EDIT STOMP A.{editingSlot}</span>
-          <input
-            value={editLabel}
-            onChange={e => setEditLabel(e.target.value.slice(0, 10))}
-            placeholder="Label (max 10 chars)"
-            className="px-2 py-1 text-sm font-mono rounded bg-transparent"
-            style={{ border: "1px solid rgba(255,255,255,0.2)", color: "white" }}
-            autoFocus
-            onKeyDown={e => { if (e.key === "Enter") applyEdit(); if (e.key === "Escape") setEditingSlot(null); }}
-          />
-          <div className="flex flex-wrap gap-2">
-            {HELIX_COLORS.map(c => (
-              <button
-                key={c.id}
-                onClick={() => setEditColor(c.id)}
-                title={c.name}
-                className="rounded-full transition-transform"
-                style={{
-                  width: 20, height: 20,
-                  background: c.hex,
-                  outline: editColor === c.id ? `2px solid white` : "none",
-                  outlineOffset: 2,
-                  transform: editColor === c.id ? "scale(1.2)" : "scale(1)",
-                }}
-              />
-            ))}
+      {/* Stomp Picker */}
+      {pickerSlot != null && draft && (() => {
+        const cats = ['ALL','AMP','PRE','CAB','DIST','DLY','REV','MOD','DYN','EQ','PCH','WAH','VOL','LP','FXL'];
+        const filtered = ALL_MODELS.filter(m => {
+          const catOk = pickerCat === 'ALL' || m.abbr === pickerCat;
+          const searchOk = !pickerSearch || m.name.toLowerCase().includes(pickerSearch.toLowerCase()) || m.id.toLowerCase().includes(pickerSearch.toLowerCase());
+          // Hide input/output/split/merge from picker by default unless searched
+          const notInternal = pickerSearch || !['IN','OUT','SPL','MRG'].includes(m.abbr);
+          return catOk && searchOk && notInternal;
+        });
+        return (
+          <div
+            className="flex flex-col rounded-xl overflow-hidden"
+            style={{ background: "#0a0a14", border: "1px solid #ff6b1a55", boxShadow: "0 0 24px rgba(255,107,26,0.12)" }}
+          >
+            {/* Picker header */}
+            <div className="flex items-center gap-2 px-3 py-2 border-b" style={{ borderColor: "#1a1a28", background: "#0d0d18" }}>
+              <span className="text-xs font-mono tracking-widest" style={{ color: "#ff6b1a" }}>
+                STOMP {pickerSlot} ASSIGN
+              </span>
+              <div className="flex gap-1 ml-2">
+                {(['block','midi','label'] as const).map(t => (
+                  <button key={t} onClick={() => setPickerTab(t)}
+                    className="px-2 py-0.5 text-xs font-mono rounded tracking-widest"
+                    style={pickerTab === t
+                      ? { background: "rgba(255,107,26,0.25)", border: "1px solid #ff6b1a", color: "#ff6b1a" }
+                      : { background: "transparent", border: "1px solid #2a2a3a", color: "rgba(255,255,255,0.35)" }}
+                  >
+                    {t.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => setPickerSlot(null)} className="ml-auto text-xs font-mono opacity-30 hover:opacity-70">✕</button>
+            </div>
+
+            {/* BLOCK tab */}
+            {pickerTab === 'block' && (
+              <div className="flex flex-col gap-2 p-3">
+                {/* Category chips */}
+                <div className="flex flex-wrap gap-1">
+                  {cats.map(c => (
+                    <button key={c} onClick={() => setPickerCat(c)}
+                      className="px-2 py-0.5 text-xs font-mono rounded"
+                      style={pickerCat === c
+                        ? { background: "rgba(255,107,26,0.25)", border: "1px solid #ff6b1a55", color: "#ff6b1a" }
+                        : { background: "rgba(255,255,255,0.04)", border: "1px solid #1e1e2e", color: "rgba(255,255,255,0.35)" }}
+                    >{c}</button>
+                  ))}
+                  {draft.model && (
+                    <button onClick={() => setDraft({ ...draft, model: undefined })}
+                      className="px-2 py-0.5 text-xs font-mono rounded ml-2"
+                      style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.3)", color: "#f87171" }}
+                    >CLEAR</button>
+                  )}
+                </div>
+                {/* Search */}
+                <input
+                  value={pickerSearch}
+                  onChange={e => setPickerSearch(e.target.value)}
+                  placeholder="Search models…"
+                  autoFocus
+                  className="px-2 py-1 text-xs font-mono rounded"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white" }}
+                />
+                {/* Model grid */}
+                <div className="overflow-y-auto" style={{ maxHeight: 520 }}>
+                  <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}>
+                    {filtered.map(m => {
+                      const isSelected = draft.model === m.id;
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => setDraft({ ...draft, model: m.id, label: draft.label || m.name.slice(0, 10) })}
+                          className="flex flex-col items-center rounded transition-all"
+                          style={{
+                            width: 140, height: 140, borderRadius: 22,
+                            background: isSelected ? m.bg : "rgba(255,255,255,0.02)",
+                            border: `2px solid ${isSelected ? m.border : "#1e1e2e"}`,
+                            boxShadow: isSelected
+                              ? `0 0 28px ${m.border}66, inset 0 0 36px ${m.border}0c`
+                              : "none",
+                            display: "flex", flexDirection: "column",
+                            alignItems: "center", justifyContent: "center", gap: 6,
+                            padding: "10px 8px 12px",
+                          }}
+                          title={m.id}
+                        >
+                          <div style={{
+                            width: 116, height: 116, borderRadius: 18,
+                            background: m.img ? "#0a0a14" : m.bg,
+                            border: `2px solid ${isSelected ? m.border : m.border + "55"}`,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            overflow: "hidden", flexShrink: 0,
+                          }}>
+                            {m.img
+                              ? <img src={`/helix-icons/${m.img}`} alt={m.name} style={{ width: 100, height: 100, objectFit: "contain" }} />
+                              : <span style={{ fontSize: 18, fontFamily: "monospace", fontWeight: "bold", color: m.border }}>{m.abbr}</span>
+                            }
+                          </div>
+                          <span style={{
+                            fontSize: 11, fontWeight: 600, fontFamily: "monospace", textAlign: "center",
+                            color: isSelected ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.5)",
+                            lineHeight: 1.2, maxWidth: 130, overflow: "hidden",
+                            textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block",
+                          }}>
+                            {m.name || m.id}
+                          </span>
+                        </button>
+                      );
+                    })}
+                    {filtered.length === 0 && (
+                      <div className="col-span-full text-xs font-mono opacity-30 py-4 text-center">no matches</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MIDI tab */}
+            {pickerTab === 'midi' && (
+              <div className="flex flex-col gap-3 p-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <div
+                    onClick={() => setDraft({ ...draft, midiEnabled: !draft.midiEnabled })}
+                    style={{
+                      width: 36, height: 20, borderRadius: 10, transition: "all 0.2s",
+                      background: draft.midiEnabled ? "#4ade80" : "#2a2a3a",
+                      position: "relative", flexShrink: 0, cursor: "pointer",
+                    }}
+                  >
+                    <div style={{
+                      position: "absolute", top: 3, left: draft.midiEnabled ? 18 : 3,
+                      width: 14, height: 14, borderRadius: "50%", background: "white",
+                      transition: "left 0.2s",
+                    }} />
+                  </div>
+                  <span className="text-xs font-mono" style={{ color: draft.midiEnabled ? "#4ade80" : "rgba(255,255,255,0.4)" }}>
+                    MIDI CC ENABLED
+                  </span>
+                </label>
+                {draft.midiEnabled && (
+                  <div className="grid gap-2" style={{ gridTemplateColumns: "1fr 1fr" }}>
+                    {([
+                      ["CC NUMBER", "midiCC", 0, 127],
+                      ["CHANNEL", "midiCh", 1, 16],
+                      ["VALUE MIN", "midiMin", 0, 127],
+                      ["VALUE MAX", "midiMax", 0, 127],
+                    ] as [string, keyof StompSlot, number, number][]).map(([lbl, key, mn, mx]) => (
+                      <div key={key} className="flex flex-col gap-1">
+                        <span className="text-xs font-mono opacity-40">{lbl}</span>
+                        <input
+                          type="number" min={mn} max={mx}
+                          value={(draft[key] as number) ?? (key === 'midiCh' ? 1 : key === 'midiMax' ? 127 : 0)}
+                          onChange={e => setDraft({ ...draft, [key]: Math.max(mn, Math.min(mx, Number(e.target.value))) })}
+                          className="px-2 py-1 text-sm font-mono rounded w-full"
+                          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.18)", color: "white" }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs font-mono opacity-25 leading-relaxed">
+                  MIDI CC will be sent when this stomp is toggled via Command Center instant commands.
+                </p>
+              </div>
+            )}
+
+            {/* LABEL tab */}
+            {pickerTab === 'label' && (
+              <div className="flex flex-col gap-3 p-4">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-mono opacity-40">DISPLAY LABEL (MAX 10)</span>
+                  <input
+                    value={draft.label}
+                    onChange={e => setDraft({ ...draft, label: e.target.value.slice(0, 10) })}
+                    placeholder="e.g. DRIVE"
+                    className="px-2 py-1 text-sm font-mono rounded"
+                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.18)", color: "white" }}
+                    autoFocus
+                    onKeyDown={e => { if (e.key === "Enter") applyPicker(); if (e.key === "Escape") setPickerSlot(null); }}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-mono opacity-40">LED COLOR</span>
+                  <div className="flex flex-wrap gap-2">
+                    {HELIX_COLORS.map(c => (
+                      <button key={c.id} onClick={() => setDraft({ ...draft, color: c.id })} title={c.name}
+                        className="rounded-full transition-transform"
+                        style={{
+                          width: 22, height: 22, background: c.hex,
+                          outline: draft.color === c.id ? "2px solid white" : "none",
+                          outlineOffset: 2,
+                          transform: draft.color === c.id ? "scale(1.25)" : "scale(1)",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Picker footer */}
+            <div className="flex items-center gap-2 px-3 py-2 border-t" style={{ borderColor: "#1a1a28" }}>
+              {draft.model && (
+                <span className="text-xs font-mono opacity-40 flex-1 truncate">{draft.model}</span>
+              )}
+              <button onClick={applyPicker}
+                className="px-4 py-1.5 text-xs font-mono rounded font-bold ml-auto"
+                style={{ background: "#ff6b1a", color: "#000" }}
+              >APPLY</button>
+              <button onClick={() => setPickerSlot(null)}
+                className="px-3 py-1.5 text-xs font-mono rounded opacity-40"
+                style={{ border: "1px solid rgba(255,255,255,0.2)" }}
+              >CANCEL</button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={applyEdit}
-              className="px-3 py-1 text-xs font-mono rounded"
-              style={{ background: "#ff6b1a", color: "#000" }}
-            >
-              APPLY
-            </button>
-            <button
-              onClick={() => setEditingSlot(null)}
-              className="px-3 py-1 text-xs font-mono rounded opacity-40"
-              style={{ border: "1px solid rgba(255,255,255,0.2)" }}
-            >
-              CANCEL
-            </button>
-          </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
 
 function StompButton({ slot, onEdit }: { slot: StompSlot; onEdit: (n: number) => void }) {
-  const color = HELIX_COLORS.find(c => c.id === slot.color) ?? HELIX_COLORS[0];
-  const hasLabel = slot.label.length > 0;
+  const helixColor = HELIX_COLORS.find(c => c.id === slot.color) ?? HELIX_COLORS[0];
+  const modelInfo = slot.model ? ALL_MODELS.find(m => m.id === slot.model) : null;
+  const hasContent = slot.label.length > 0 || !!slot.model;
+  const ledColor = modelInfo ? modelInfo.border : helixColor.hex;
+  const borderColor = modelInfo ? modelInfo.border + "66" : hasContent ? helixColor.hex + "55" : "#1e1e2e";
+
   return (
     <button
       onClick={() => onEdit(slot.slot)}
-      className="flex flex-col items-center justify-between rounded p-2 transition-all"
+      className="flex flex-col items-center rounded transition-all"
       style={{
-        minHeight: 64,
-        background: hasLabel ? `${color.hex}1a` : "rgba(255,255,255,0.03)",
-        border: `1px solid ${hasLabel ? `${color.hex}66` : "rgba(255,255,255,0.1)"}`,
+        minHeight: 96,
+        padding: "8px 4px 7px",
+        gap: 5,
+        background: "linear-gradient(180deg, #16161f 0%, #0e0e16 100%)",
+        border: `1px solid ${borderColor}`,
+        boxShadow: hasContent
+          ? `0 0 14px ${ledColor}18, inset 0 1px 0 rgba(255,255,255,0.04)`
+          : "inset 0 1px 0 rgba(255,255,255,0.02)",
         cursor: "pointer",
       }}
-      title={`Stomp A.${slot.slot} — click to edit`}
+      title={`Stomp ${slot.slot} — click to assign`}
     >
-      {/* LED indicator dot */}
-      <div
-        className="rounded-full"
-        style={{ width: 8, height: 8, background: hasLabel ? color.hex : "rgba(255,255,255,0.1)", boxShadow: hasLabel ? `0 0 6px ${color.hex}` : "none" }}
-      />
+      {/* Category block or knob */}
+      {modelInfo ? (
+        <div style={{
+          width: 34, height: 34, borderRadius: 7,
+          background: modelInfo.img ? "transparent" : modelInfo.bg,
+          border: `1.5px solid ${modelInfo.border}`,
+          boxShadow: `0 0 8px ${modelInfo.border}44`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0, overflow: "hidden",
+        }}>
+          {modelInfo.img
+            ? <img src={`/helix-icons/${modelInfo.img}`} alt={modelInfo.name} style={{ width: 30, height: 30, objectFit: "contain" }} />
+            : <span style={{ fontSize: 8, fontFamily: "monospace", fontWeight: "bold", color: modelInfo.border, letterSpacing: "0.05em" }}>{modelInfo.abbr}</span>
+          }
+        </div>
+      ) : (
+        <div style={{
+          width: 30, height: 30, borderRadius: "50%",
+          background: "radial-gradient(circle at 38% 32%, #2e2e46, #181824)",
+          border: "2px solid #26263a",
+          boxShadow: "0 3px 7px rgba(0,0,0,0.7)",
+          display: "flex", alignItems: "flex-start", justifyContent: "center",
+          paddingTop: 5, flexShrink: 0,
+        }}>
+          <div style={{ width: 2, height: 9, background: "#58587a", borderRadius: 1 }} />
+        </div>
+      )}
+      {/* LED */}
+      <div style={{
+        width: 7, height: 7, borderRadius: "50%",
+        background: hasContent ? ledColor : "#16162a",
+        boxShadow: hasContent ? `0 0 7px 2px ${ledColor}66` : "none",
+        transition: "all 0.2s", flexShrink: 0,
+      }} />
       {/* Label */}
-      <span
-        className="text-center font-mono leading-tight"
-        style={{
-          fontSize: 9,
-          color: hasLabel ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.2)",
-          maxWidth: "100%",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-          display: "block",
-        }}
-      >
-        {slot.label || "—"}
+      <span style={{
+        fontSize: 8, fontFamily: "monospace", letterSpacing: "0.05em",
+        color: hasContent ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.16)",
+        textAlign: "center", lineHeight: 1.2,
+        maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        display: "block", padding: "0 2px",
+      }}>
+        {slot.label || (modelInfo ? modelInfo.name.slice(0, 10) : `${slot.slot}`)}
       </span>
-      {/* Slot number */}
-      <span style={{ fontSize: 7, color: "rgba(255,255,255,0.2)" }}>A.{slot.slot}</span>
+      {/* MIDI badge */}
+      {slot.midiEnabled && (
+        <span style={{ fontSize: 7, fontFamily: "monospace", color: "#4ade80", opacity: 0.7, letterSpacing: "0.04em" }}>
+          CC{slot.midiCC ?? "?"}
+        </span>
+      )}
     </button>
   );
 }
@@ -388,9 +681,9 @@ function CommandCenter({ ip }: { ip: string }) {
   }
 
   return (
-    <div className="flex flex-col rounded" style={{ border: "1px solid rgba(251,191,36,0.3)", background: "rgba(251,191,36,0.03)" }}>
+    <div className="flex flex-col rounded-xl" style={{ border: "1px solid #2a2010", background: "#0d0d10" }}>
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-2 border-b" style={{ borderColor: "rgba(251,191,36,0.15)" }}>
+      <div className="flex items-center gap-3 px-4 py-2 border-b" style={{ borderColor: "#1a1808" }}>
         <span className="text-xs font-mono tracking-widest" style={{ color: "#fbbf24" }}>COMMAND CENTER</span>
         <span className="text-xs opacity-30 font-mono">MIDI instant CC</span>
         <div className="ml-auto flex items-center gap-3">
@@ -406,8 +699,14 @@ function CommandCenter({ ip }: { ip: string }) {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-0">
         {slots.map((s, si) => (
           <button key={s.id} onClick={() => openEdit(s)}
-            className="flex flex-col items-start gap-0.5 px-3 py-2.5 text-left transition-all hover:bg-yellow-400/5"
-            style={{ borderBottom: si < 3 ? "1px solid rgba(255,255,255,0.04)" : undefined, borderRight: si % 3 !== 2 ? "1px solid rgba(255,255,255,0.04)" : undefined }}>
+            className="flex flex-col items-start gap-0.5 px-3 py-2.5 text-left transition-all"
+            style={{
+              borderBottom: si < 3 ? "1px solid #141408" : undefined,
+              borderRight: si % 3 !== 2 ? "1px solid #141408" : undefined,
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(251,191,36,0.04)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+          >
             <div className="flex items-center gap-2 w-full">
               <span className="text-xs font-mono font-bold" style={{ color: "#fbbf24" }}>#{s.id}</span>
               <span className="text-xs font-mono truncate flex-1" style={{ color: s.type !== "none" ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)" }}>
@@ -423,7 +722,7 @@ function CommandCenter({ ip }: { ip: string }) {
 
       {/* Inline editor */}
       {editingId != null && editSlot && (
-        <div className="flex flex-col gap-3 px-4 py-3 border-t" style={{ borderColor: "rgba(251,191,36,0.15)", background: "rgba(0,0,0,0.2)" }}>
+        <div className="flex flex-col gap-3 px-4 py-3 border-t" style={{ borderColor: "#1a1808", background: "#0a0a0d" }}>
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono" style={{ color: "#fbbf24" }}>INSTANT {editSlot.id}</span>
             <input value={editSlot.label} maxLength={12}
@@ -525,6 +824,7 @@ export default function StadiumPage() {
   const [queryArgs, setQueryArgs] = useState("1");
   const [queryResult, setQueryResult] = useState<string>("");
   const [queryPending, setQueryPending] = useState(false);
+  const [readingBuffer, setReadingBuffer] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [replayFile, setReplayFile] = useState<RawEvent[] | null>(null);
   const [replayName, setReplayName] = useState("");
@@ -546,8 +846,10 @@ export default function StadiumPage() {
   // decoded preset
   const [presetSnaps, setPresetSnaps] = useState<Array<{name: string; si__: number; colr: number}>>([]);
   const [presetSignalChain, setPresetSignalChain] = useState<Array<{slotIdx: number; block: unknown}>>([]);
+  const [presetSignalChainB, setPresetSignalChainB] = useState<Array<{slotIdx: number; block: unknown}>>([]);
   const [presetStomps, setPresetStomps] = useState<Array<{slot: number; label: string; color: number}>>([]);
   const [modelNames, setModelNames] = useState<Record<number, string>>({});
+  const [modelCatalogIds, setModelCatalogIds] = useState<Record<number, string>>({});
   const [editBlobB64, setEditBlobB64] = useState<string>("");
   const [pushStatus, setPushStatus] = useState("");
   // command center
@@ -776,6 +1078,87 @@ export default function StadiumPage() {
     }
   }, [ip]);
 
+  const readEditBuffer = useCallback(async () => {
+    setReadingBuffer(true);
+    try {
+      const res = await fetch(`/api/stadium/editbuffer?ip=${encodeURIComponent(ip)}`);
+      const j = await res.json() as { ok: boolean; presetCid?: number; rawBlob?: string; data?: unknown; error?: string };
+      if (!j.ok) return;
+      if (j.rawBlob) setEditBlobB64(j.rawBlob);
+      const d = j.data as Record<string, unknown>;
+      // Snapshots
+      try {
+        const entt = (d?.['cg__'] as Record<string,unknown>)?.['entt'] as Record<string,unknown>;
+        const snpsRaw = entt?.['snps'] as unknown[] | undefined;
+        if (Array.isArray(snpsRaw) && snpsRaw.length > 0) {
+          const snaps = snpsRaw.filter(s => s && typeof s === 'object').map(s => {
+            const so = s as Record<string,unknown>;
+            return { name: String(so['name'] ?? ''), si__: Number(so['si__'] ?? 0), colr: Number(so['colr'] ?? 0) };
+          }).sort((a,b) => a.si__ - b.si__);
+          setPresetSnaps(snaps);
+        }
+      } catch { /* optional */ }
+      // Signal chain — both paths
+      try {
+        const flowArr = (d?.['sfg_'] as Record<string,unknown>)?.['flow'] as unknown[] | undefined;
+        const parseFlow = (pathObj: unknown) => {
+          const blks = (pathObj as Record<string,unknown>)?.['blks'] as unknown[] | undefined;
+          if (!Array.isArray(blks)) return [];
+          const pairs: Array<{slotIdx:number;block:unknown}> = [];
+          for (let bi = 0; bi+1 < blks.length; bi+=2) pairs.push({ slotIdx: Number(blks[bi]), block: blks[bi+1] });
+          return pairs;
+        };
+        if (Array.isArray(flowArr) && flowArr.length > 0) {
+          const pathA = parseFlow(flowArr[0]);
+          const pathB = flowArr.length > 1 ? parseFlow(flowArr[1]) : [];
+          setPresetSignalChain(pathA);
+          setPresetSignalChainB(pathB);
+          const allPairs = [...pathA, ...pathB];
+          const slotPayload = allPairs.flatMap(({ slotIdx, block }) => {
+            const b = block as Record<string,unknown>;
+            const mdls = b?.['mdls'] as Array<Record<string,unknown>> | undefined;
+            const modelId = Array.isArray(mdls) && mdls.length > 0 ? mdls[0]['id__'] as number : null;
+            return modelId != null ? [{ slot: slotIdx, modelId }] : [];
+          });
+          if (slotPayload.length > 0) {
+            fetch("/api/stadium/resolve-models", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ presetName: devicePresetName, slots: slotPayload }),
+            }).then(r => r.json()).then((nm: { ok: boolean; names?: Record<number,string>; catalogIds?: Record<number,string> }) => {
+              if (nm.ok && nm.names) setModelNames(nm.names);
+              if (nm.ok && nm.catalogIds) setModelCatalogIds(nm.catalogIds);
+            }).catch(() => {});
+          }
+        }
+      } catch { /* optional */ }
+      // Stomps
+      try {
+        const pm = d?.['pm__'] as unknown[] | undefined;
+        if (Array.isArray(pm)) {
+          const slotMap = new Map<number, {label:string;color:number}>();
+          for (const entry of pm) {
+            if (!entry || typeof entry !== 'object') continue;
+            const e = entry as Record<string,unknown>;
+            const key = String(e['key'] ?? '');
+            const m = key.match(/preset\.floorboard\.stomp\.a\.(\d+)\.(label|color)/);
+            if (m) {
+              const slot = parseInt(m[1], 10);
+              const field = m[2];
+              const cur = slotMap.get(slot) ?? { label: '', color: 0 };
+              if (field === 'label') cur.label = String(e['value'] ?? '');
+              if (field === 'color') cur.color = Number(e['value'] ?? 0);
+              slotMap.set(slot, cur);
+            }
+          }
+          if (slotMap.size > 0)
+            setPresetStomps(Array.from(slotMap.entries()).map(([slot, v]) => ({ slot, ...v })));
+        }
+      } catch { /* optional */ }
+    } catch { /* ignore */ } finally {
+      setReadingBuffer(false);
+    }
+  }, [ip, devicePresetName]);
+
   const setSnapshotOnDevice = useCallback(async (index: number) => {
     setSnapshotIdx(index);
     await fetch("/api/stadium/send", {
@@ -837,6 +1220,7 @@ export default function StadiumPage() {
         count?: number;
         error?: string;
         raw?: unknown;
+        diag?: { typeTags: string; args: string[] };
       };
       if (!j.ok) {
         setBrowserError(j.error ?? "request failed");
@@ -846,8 +1230,27 @@ export default function StadiumPage() {
       setBrowserPresets(presets);
       if (overrideCid === undefined) browserPresetsRef.current = presets;
       if (j.raw) setBrowserRaw(JSON.stringify(j.raw, null, 2).slice(0, 4000));
-      if (presets.length === 0 && j.count === 0) {
-        setBrowserError("empty container — device may not be in edit mode");
+      if (j.diag) setBrowserRaw(prev => (prev ? prev : "") + "\n\n[OSC] " + JSON.stringify(j.diag));
+
+      if (presets.length === 0 && (j.count === 0 || j.count == null)) {
+        // "user" tab: user presets live in setlists on the Stadium, not a flat container.
+        // Auto-fall-back to setlists so the user can navigate to their presets.
+        if (tab === "user" && overrideCid === undefined) {
+          setBrowserLoading(false);
+          setBrowserError("");
+          setBrowserTab("setlists");
+          setBrowserCidStack([]);
+          // Tail-call to setlists fetch — let the new tab's fetch run
+          const resSL = await fetch(`/api/stadium/contents?ip=${encodeURIComponent(ip)}&cid=${CONTAINER_SETLISTS}`);
+          const jSL = await resSL.json() as { ok: boolean; presets?: PresetEntry[]; count?: number; error?: string; raw?: unknown; diag?: unknown };
+          if (!jSL.ok) { setBrowserError(jSL.error ?? "setlists request failed"); return; }
+          const slPresets = jSL.presets ?? [];
+          setBrowserPresets(slPresets);
+          if (jSL.raw) setBrowserRaw(JSON.stringify(jSL.raw, null, 2).slice(0, 4000));
+          if (slPresets.length === 0) setBrowserError("no setlists found — is the device connected and in edit mode?");
+          return;
+        }
+        setBrowserError("empty container — no presets found");
       }
       // update device preset name now that we have the list
       if (overrideCid === undefined && deviceCid !== null) {
@@ -984,19 +1387,19 @@ export default function StadiumPage() {
     <div
       className="min-h-screen flex flex-col"
       style={{
-        background: "var(--forge-bg, #0a0a0a)",
-        color: "var(--forge-text, #e5e5e5)",
+        background: "#08080f",
+        color: "#c8c8e0",
         fontFamily: "var(--font-mono, monospace)",
       }}
     >
       {/* header */}
       <header
         className="flex items-center justify-between px-6 py-4 border-b"
-        style={{ borderColor: "rgba(255,255,255,0.08)" }}
+        style={{ borderColor: "#14141f", background: "#0a0a12" }}
       >
         <h1
           className="text-sm font-mono tracking-widest"
-          style={{ color: "var(--forge-ember, #ff6b1a)" }}
+          style={{ color: "#ff6b1a" }}
         >
           STADIUM MONITOR
         </h1>
@@ -1144,8 +1547,8 @@ export default function StadiumPage() {
 
         {/* device status + snapshot switcher */}
         <div
-          className="flex flex-wrap items-center gap-3 px-4 py-2 rounded"
-          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
+          className="flex flex-wrap items-center gap-3 px-4 py-2 rounded-xl"
+          style={{ background: "#0d0d16", border: "1px solid #1a1a28" }}
         >
           <span className="text-xs font-mono opacity-40 tracking-widest">DEVICE:</span>
           <span className="text-xs font-mono" style={{ color: "var(--forge-ember,#ff6b1a)" }}>
@@ -1171,8 +1574,8 @@ export default function StadiumPage() {
                     padding: snap ? "0 8px" : undefined,
                     width: snap ? undefined : 28,
                     ...(isActive
-                      ? { background: "rgba(255,107,26,0.4)", border: "1px solid rgba(255,107,26,0.8)", color: "var(--forge-ember,#ff6b1a)" }
-                      : { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" })
+                      ? { background: "rgba(255,107,26,0.25)", border: "1px solid #ff6b1a", color: "#ff6b1a", boxShadow: "0 0 10px rgba(255,107,26,0.3)" }
+                      : { background: "#111120", border: "1px solid #1e1e30", color: "rgba(255,255,255,0.4)" })
                   }}
                 >
                   {label}
@@ -1193,6 +1596,172 @@ export default function StadiumPage() {
             {statusFetching ? "…" : "REFRESH"}
           </button>
         </div>
+
+        {/* signal chain viewer — always visible when connected */}
+        {status === "live" && (() => {
+          const LINE_COLOR = "#1e1e30";
+          const LINE_W = 32;
+          const BLK = 140; // block size
+
+          const renderBlock = (slotIdx: number, block: unknown, key: string | number) => {
+            if (!block || typeof block !== "object") return null;
+            const b = block as Record<string, unknown>;
+            const mdls = b["mdls"] as Array<Record<string, unknown>> | undefined;
+            const modelId = Array.isArray(mdls) && mdls.length > 0 ? (mdls[0]["id__"] as number) : null;
+            const isBypassed = b["enbl"] === 0 || b["enbl"] === false;
+            const blockType = b["type"];
+            const resolvedName = modelId != null ? modelNames[modelId] : undefined;
+            const label = resolvedName ?? (modelId != null ? `mid:${modelId}` : blockType === 8 ? "INPUT" : blockType === 4 ? "OUTPUT" : `blk${slotIdx}`);
+            const cat = getBlockCat(label);
+            const catalogId = modelId != null ? modelCatalogIds[modelId] : undefined;
+            const defEntry = catalogId ? MODEL_DEFS[catalogId] : undefined;
+            const imgFile = defEntry?.img ?? null;
+            const borderCol = isBypassed ? "#252535" : cat.border;
+            return (
+              <div key={key} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                <div style={{
+                  width: BLK, height: BLK, borderRadius: 22,
+                  background: "#000",
+                  border: `2px solid ${borderCol}`,
+                  boxShadow: isBypassed ? "none" : `0 0 28px ${cat.border}40, inset 0 0 36px ${cat.border}0c`,
+                  opacity: isBypassed ? 0.35 : 1,
+                  display: "flex", flexDirection: "column",
+                  alignItems: "center", justifyContent: "center", gap: 4,
+                  flexShrink: 0, overflow: "hidden", position: "relative",
+                }}>
+                  {imgFile
+                    ? <img src={`/helix-icons/${imgFile}`} alt={label} style={{ width: 116, height: 116, objectFit: "contain" }} />
+                    : <span style={{ fontSize: 18, fontFamily: "monospace", fontWeight: "bold", color: borderCol, letterSpacing: "0.08em" }}>{cat.abbr}</span>
+                  }
+                </div>
+                <span style={{
+                  fontSize: 11, fontFamily: "monospace", color: isBypassed ? "#2e2e42" : "rgba(255,255,255,0.85)",
+                  textAlign: "center", lineHeight: 1.3, maxWidth: BLK, overflow: "hidden",
+                  textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600,
+                }}>
+                  {resolvedName ?? (modelId != null ? `#${modelId}` : label)}
+                </span>
+              </div>
+            );
+          };
+
+          // Render a path as a flex row of blocks with connectors.
+          const renderPathRow = (chain: typeof presetSignalChain) => (
+            <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+              {chain.map(({ slotIdx, block }, bi) => (
+                <div key={bi} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+                  {renderBlock(slotIdx, block, bi)}
+                  {bi < chain.length - 1 && (
+                    <div style={{ width: LINE_W, height: 2, background: LINE_COLOR, flexShrink: 0 }} />
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+
+          // ── Dual-path layout ───────────────────────────────────────────────
+          // Filter Path B to only real effect blocks (drop None/empty slots without a modelId).
+          const pathBReal = presetSignalChainB.filter(({ block }) => {
+            const b = block as Record<string, unknown>;
+            const mdls = b["mdls"] as Array<Record<string, unknown>> | undefined;
+            return Array.isArray(mdls) && mdls.length > 0 && (mdls[0]["id__"] as number) != null;
+          });
+          const hasDualPath = pathBReal.length > 0;
+
+          const UNIT = BLK + LINE_W; // 172 px per displayed block
+
+          // Helper: check if a block in Path A is a split or join by its resolved name / catalogId.
+          const blockMatchesLabel = (block: unknown, re: RegExp) => {
+            const b = block as Record<string, unknown>;
+            const mdls = b["mdls"] as Array<Record<string, unknown>> | undefined;
+            const modelId = Array.isArray(mdls) && mdls.length > 0 ? (mdls[0]["id__"] as number) : null;
+            if (modelId == null) return false;
+            return re.test(modelNames[modelId] ?? "") || re.test(modelCatalogIds[modelId] ?? "");
+          };
+
+          // Find split and join display indices in Path A by block label.
+          const splitDispIdx = presetSignalChain.findIndex(({ block }) => blockMatchesLabel(block, /split/i));
+          const joinDispIdx  = presetSignalChain.findIndex(({ block }) => blockMatchesLabel(block, /\bjoin\b|merge/i));
+
+          // Offset in px for Path B row (starts at the split block column).
+          // Falls back to 0 if split not yet resolved (model names load async after chain).
+          const pathBOffsetPx = splitDispIdx > 0 ? splitDispIdx * UNIT : 0;
+
+          // Centre-x of split and join columns (for vertical bridge lines).
+          // The "A"/"B" label spans ~12 px before the first block, accounted for in both paths equally.
+          const splitCX = splitDispIdx > 0 ? splitDispIdx * UNIT + BLK / 2 - 1 : pathBOffsetPx + BLK / 2 - 1;
+          const joinCX  = joinDispIdx  > 0 ? joinDispIdx  * UNIT + BLK / 2 - 1 : -1;
+          const BRIDGE_H = 44;
+
+          return (
+            <div className="flex flex-col rounded-xl overflow-hidden" style={{ background: "#000", border: "1px solid #1a1a28" }}>
+              {/* header */}
+              <div className="flex items-center gap-3 px-4 py-2 border-b" style={{ borderColor: "#111120" }}>
+                <span className="text-xs font-mono tracking-widest" style={{ color: "#3a3a58" }}>SIGNAL CHAIN</span>
+                {presetSignalChain.length > 0 && (
+                  <span className="text-xs font-mono" style={{ color: "#252538" }}>
+                    {presetSignalChain.length}{hasDualPath ? ` + ${pathBReal.length}` : ''} blocks
+                  </span>
+                )}
+                <button
+                  onClick={readEditBuffer}
+                  disabled={readingBuffer}
+                  className="px-4 py-1 text-xs font-mono font-bold rounded tracking-widest transition-all"
+                  style={{
+                    background: readingBuffer ? "rgba(255,107,26,0.1)" : "rgba(255,107,26,0.22)",
+                    border: "1px solid rgba(255,107,26,0.6)",
+                    color: "#ff6b1a",
+                    opacity: readingBuffer ? 0.6 : 1,
+                  }}
+                >
+                  {readingBuffer ? "READING…" : "⟳ READ DEVICE"}
+                </button>
+                {presetSignalChain.length > 0 && (
+                  <button
+                    onClick={() => { setPresetSignalChain([]); setPresetSignalChainB([]); setModelNames({}); setModelCatalogIds({}); }}
+                    className="ml-auto text-xs font-mono hover:opacity-100 transition-opacity"
+                    style={{ color: "#2e2e48", opacity: 0.5 }}
+                  >CLEAR</button>
+                )}
+              </div>
+
+              {/* paths */}
+              <div className="overflow-x-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#1e1e30 transparent" }}>
+                <div style={{ position: "relative", display: "inline-flex", flexDirection: "column", gap: 0, padding: "20px 24px", minWidth: "max-content" }}>
+
+                  {/* ── Path A row ────────────────────────────────────────── */}
+                  {renderPathRow(presetSignalChain)}
+
+                  {/* ── Bridge: vertical connectors at split and join ──────── */}
+                  {hasDualPath && (
+                    <div style={{ position: "relative", height: BRIDGE_H, flexShrink: 0 }}>
+                      {/* Vertical drop at split */}
+                      <div style={{ position: "absolute", left: splitCX, top: 0, width: 2, height: BRIDGE_H, background: LINE_COLOR }} />
+                      {/* Vertical rise at join */}
+                      {joinCX >= 0 && (
+                        <div style={{ position: "absolute", left: joinCX, top: 0, width: 2, height: BRIDGE_H, background: LINE_COLOR }} />
+                      )}
+                      {/* "A" label — top left of bridge */}
+                      <span style={{ position: "absolute", left: 0, top: -BLK / 2 - 2, fontSize: 9, fontFamily: "monospace", color: "#2e2e48", fontWeight: 700 }}>A</span>
+                      {/* "B" label — at split column, bottom */}
+                      {hasDualPath && splitCX >= 0 && (
+                        <span style={{ position: "absolute", left: splitCX + 8, bottom: -BLK / 2 - 2, fontSize: 9, fontFamily: "monospace", color: "#2e2e48", fontWeight: 700 }}>B</span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── Path B row (offset to split column) ──────────────── */}
+                  {hasDualPath && (
+                    <div style={{ paddingLeft: pathBOffsetPx }}>
+                      {renderPathRow(pathBReal)}
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* visual pedalboard */}
         {presetStomps.length > 0 && (
@@ -1321,8 +1890,8 @@ export default function StadiumPage() {
 
         {/* preset browser */}
         <div
-          className="flex flex-col rounded"
-          style={{ border: "1px solid rgba(255,107,26,0.35)", background: "rgba(255,107,26,0.04)" }}
+          className="flex flex-col rounded-xl"
+          style={{ border: "1px solid #221810", background: "#0d0b0a" }}
         >
           {/* browser header + tabs */}
           <div className="flex items-center gap-0 border-b" style={{ borderColor: "rgba(255,107,26,0.2)" }}>
@@ -1446,7 +2015,7 @@ export default function StadiumPage() {
                           cursor: "pointer",
                           transition: "background 0.15s",
                         }}
-                        onClick={() => browserTab === "setlists" && browserCidStack.length < 2 ? drillIntoBrowserEntry(p) : loadFromBrowser(p)}
+                        onClick={() => browserTab === "setlists" && browserCidStack.length < 1 ? drillIntoBrowserEntry(p) : loadFromBrowser(p)}
                       >
                         <td
                           className="px-3 py-1.5 text-right"
@@ -1467,7 +2036,7 @@ export default function StadiumPage() {
                           {p.cid}
                         </td>
                         <td className="px-3 py-1.5 text-right" style={{ width: 80 }}>
-                          {browserTab === "setlists" && browserCidStack.length < 2 ? (
+                          {browserTab === "setlists" && browserCidStack.length < 1 ? (
                             <button
                               className="px-2 py-0.5 rounded text-xs font-mono"
                               style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)" }}
@@ -1519,76 +2088,6 @@ export default function StadiumPage() {
 
         {/* command center */}
         <CommandCenter ip={ip} />
-
-        {/* signal chain viewer */}
-        {presetSignalChain.length > 0 && (
-          <div
-            className="flex flex-col rounded"
-            style={{ border: "1px solid rgba(74,222,128,0.25)", background: "rgba(74,222,128,0.03)" }}
-          >
-            <div
-              className="flex items-center gap-3 px-4 py-2 border-b"
-              style={{ borderColor: "rgba(74,222,128,0.12)" }}
-            >
-              <span className="text-xs font-mono tracking-widest" style={{ color: "#4ade80" }}>SIGNAL CHAIN</span>
-              <span className="text-xs opacity-30 font-mono">{presetSignalChain.length} blocks</span>
-              <button
-                onClick={() => { setPresetSignalChain([]); setModelNames({}); }}
-                className="ml-auto text-xs font-mono opacity-30 hover:opacity-70 transition-opacity"
-              >
-                CLEAR
-              </button>
-            </div>
-            <div
-              className="flex items-start gap-2 p-3 overflow-x-auto"
-              style={{ scrollbarWidth: "thin" }}
-            >
-              {presetSignalChain.map(({ slotIdx, block }, bi) => {
-                if (!block || typeof block !== "object") return null;
-                const b = block as Record<string, unknown>;
-                const mdls = b['mdls'] as Array<Record<string, unknown>> | undefined;
-                const modelId = Array.isArray(mdls) && mdls.length > 0 ? (mdls[0]['id__'] as number) : null;
-                const isBypassed = b['enbl'] === 0 || b['enbl'] === false;
-                const isSnap = b['snap'] === true;
-                const blockType = b['type'];
-                const resolvedName = modelId != null ? modelNames[modelId] : undefined;
-                const label = resolvedName ?? (modelId != null ? `mid:${modelId}` : blockType === 8 ? "INPUT" : `blk${slotIdx}`);
-                const isResolved = resolvedName != null;
-                return (
-                  <div
-                    key={bi}
-                    className="flex-shrink-0 rounded flex flex-col gap-1 p-2"
-                    style={{
-                      minWidth: 80,
-                      maxWidth: 120,
-                      border: `1px solid ${isBypassed ? "rgba(255,255,255,0.1)" : "rgba(74,222,128,0.35)"}`,
-                      background: isBypassed ? "rgba(255,255,255,0.02)" : "rgba(74,222,128,0.07)",
-                      opacity: isBypassed ? 0.4 : 1,
-                    }}
-                  >
-                    <div
-                      className="text-xs font-mono text-center"
-                      style={{ color: isResolved ? "#4ade80" : "#7db89e", fontSize: 10, wordBreak: "break-word", lineHeight: 1.3 }}
-                      title={`slot:${slotIdx} model:${modelId ?? "?"}`}
-                    >
-                      {String(label)}
-                    </div>
-                    <div className="flex flex-col gap-0.5" style={{ fontSize: 9 }}>
-                      <div style={{ color: "rgba(255,255,255,0.3)" }}>
-                        s:{slotIdx} {isBypassed ? "BYP" : "ON"}{isSnap ? " 📸" : ""}
-                      </div>
-                      {Array.isArray(mdls) && mdls.length > 0 && (
-                        <div style={{ color: "rgba(255,255,255,0.2)" }}>
-                          {modelId != null ? `#${modelId}` : `p:${((mdls[0]['parm'] as unknown[]) ?? []).length}`}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* raw query console */}
         <div
@@ -1662,36 +2161,40 @@ export default function StadiumPage() {
                         setPresetSnaps(snaps);
                       }
                     } catch { /* ignore — snapshots optional */ }
-                    // Extract signal chain from sfg_.flow[0].blks (alternating [slot_idx, blockObj, ...])
+                    // Extract signal chain from sfg_.flow[0..1].blks (alternating [slot_idx, blockObj, ...])
                     try {
                       const d = j.data as Record<string, unknown>;
                       const flowArr = (d?.['sfg_'] as Record<string, unknown>)?.['flow'] as unknown[] | undefined;
+                      const parseFlow = (pathObj: unknown): Array<{slotIdx: number; block: unknown}> => {
+                        const blks = (pathObj as Record<string, unknown>)?.['blks'] as unknown[] | undefined;
+                        if (!Array.isArray(blks)) return [];
+                        const pairs: Array<{slotIdx: number; block: unknown}> = [];
+                        for (let bi = 0; bi + 1 < blks.length; bi += 2)
+                          pairs.push({ slotIdx: Number(blks[bi]), block: blks[bi + 1] });
+                        return pairs;
+                      };
                       if (Array.isArray(flowArr) && flowArr.length > 0) {
-                        const path0 = flowArr[0] as Record<string, unknown>;
-                        const blks = path0?.['blks'] as unknown[] | undefined;
-                        if (Array.isArray(blks)) {
-                          // blks alternates: [slot_idx, blockObj, slot_idx, blockObj, ...]
-                          const pairs: Array<{slotIdx: number; block: unknown}> = [];
-                          for (let bi = 0; bi + 1 < blks.length; bi += 2) {
-                            pairs.push({ slotIdx: Number(blks[bi]), block: blks[bi + 1] });
-                          }
-                          setPresetSignalChain(pairs);
-                          // Resolve model names from .hsp file correlation
-                          const slotPayload = pairs.flatMap(({ slotIdx, block }) => {
-                            const b = block as Record<string, unknown>;
-                            const mdls = b?.['mdls'] as Array<Record<string, unknown>> | undefined;
-                            const modelId = Array.isArray(mdls) && mdls.length > 0 ? mdls[0]['id__'] as number : null;
-                            return modelId != null ? [{ slot: slotIdx, modelId }] : [];
-                          });
-                          if (slotPayload.length > 0 && devicePresetName) {
-                            fetch("/api/stadium/resolve-models", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ presetName: devicePresetName, slots: slotPayload }),
-                            }).then(r => r.json()).then((nm: { ok: boolean; names?: Record<number, string> }) => {
-                              if (nm.ok && nm.names) setModelNames(nm.names);
-                            }).catch(() => { /* non-critical */ });
-                          }
+                        const pathA = parseFlow(flowArr[0]);
+                        const pathB = flowArr.length > 1 ? parseFlow(flowArr[1]) : [];
+                        setPresetSignalChain(pathA);
+                        setPresetSignalChainB(pathB);
+                        // Resolve model names from .hsp file correlation
+                        const allPairs = [...pathA, ...pathB];
+                        const slotPayload = allPairs.flatMap(({ slotIdx, block }) => {
+                          const b = block as Record<string, unknown>;
+                          const mdls = b?.['mdls'] as Array<Record<string, unknown>> | undefined;
+                          const modelId = Array.isArray(mdls) && mdls.length > 0 ? mdls[0]['id__'] as number : null;
+                          return modelId != null ? [{ slot: slotIdx, modelId }] : [];
+                        });
+                        if (slotPayload.length > 0 && devicePresetName) {
+                          fetch("/api/stadium/resolve-models", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ presetName: devicePresetName, slots: slotPayload }),
+                          }).then(r => r.json()).then((nm: { ok: boolean; names?: Record<number, string>; catalogIds?: Record<number, string> }) => {
+                            if (nm.ok && nm.names) setModelNames(nm.names);
+                            if (nm.ok && nm.catalogIds) setModelCatalogIds(nm.catalogIds);
+                          }).catch(() => { /* non-critical */ });
                         }
                       }
                     } catch { /* ignore */ }

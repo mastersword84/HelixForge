@@ -1,6 +1,11 @@
 import { NextRequest } from "next/server";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
+import numericIdMapRaw from "@/lib/helix-numeric-id-map.json";
+import modelDefsRaw from "@/lib/helix-model-defs.json";
+
+const NUMERIC_ID_MAP = numericIdMapRaw as Record<string, string>;
+const MODEL_DEFS = modelDefsRaw as Record<string, { name: string; short: string; cls: string; img: string | null }>;
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -102,7 +107,7 @@ function loadHspSlots(presetName: string): Map<number, string> | null {
 
 // POST /api/stadium/resolve-models
 // Body: { presetName: string; slots: Array<{slot: number; modelId: number}> }
-// Returns: { names: Record<number, string> }  — modelId → display name
+// Returns: { names: Record<number, string>, catalogIds: Record<number, string> }
 
 export async function POST(req: NextRequest) {
   let presetName: string;
@@ -117,14 +122,31 @@ export async function POST(req: NextRequest) {
 
   const hspSlots = presetName ? loadHspSlots(presetName) : null;
   const names: Record<number, string> = {};
+  const catalogIds: Record<number, string> = {};
 
   for (const { slot, modelId } of slots) {
     if (modelId == null) continue;
-    const modelStr = hspSlots?.get(slot);
-    if (modelStr) {
-      names[modelId] = modelStringToName(modelStr);
+
+    // 1. Try .hsp slot correlation first (most accurate)
+    const hspModel = hspSlots?.get(slot);
+    if (hspModel) {
+      names[modelId] = modelStringToName(hspModel);
+      catalogIds[modelId] = hspModel;
+      continue;
+    }
+
+    // 2. Fall back to numeric ID map from device model definition binary
+    const numericCatalogId = NUMERIC_ID_MAP[String(modelId)];
+    if (numericCatalogId) {
+      // Prefer Mono variant for display name lookup
+      const defKey = MODEL_DEFS[numericCatalogId]
+        ? numericCatalogId
+        : numericCatalogId.replace(/Stereo$/, 'Mono');
+      const def = MODEL_DEFS[defKey];
+      names[modelId] = def?.name ?? modelStringToName(numericCatalogId);
+      catalogIds[modelId] = numericCatalogId;
     }
   }
 
-  return Response.json({ ok: true, names, hspFound: hspSlots !== null });
+  return Response.json({ ok: true, names, catalogIds, hspFound: hspSlots !== null });
 }

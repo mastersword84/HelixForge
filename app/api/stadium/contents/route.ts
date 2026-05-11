@@ -177,13 +177,42 @@ export async function GET(req: NextRequest) {
     return Response.json({ ok: false, error: "OSC decode failed" }, { status: 500 });
   }
 
-  const count    = (oscDecoded.args[2] as number) ?? 0;
-  const blobArg  = oscDecoded.args[1] as { _b64?: string; _len?: number } | null | undefined;
-  const blobB64  = blobArg?._b64;
-  const blobLen  = blobArg?._len ?? 0;
+  // Build diagnostic: typeTags + non-blob arg values for debugging
+  const diagArgs = oscDecoded.args.map((a, i) => {
+    if (a && typeof a === "object" && "_b64" in (a as object)) {
+      return `[blob len=${(a as { _len?: number })._len ?? 0}]`;
+    }
+    return String(a);
+  });
+  const diag = { typeTags: oscDecoded.typeTags, args: diagArgs };
+
+  // Find blob arg (type 'b') and count arg (last 'i' after blob)
+  let blobArg: { _b64?: string; _len?: number } | null = null;
+  let count = 0;
+  for (let i = 0; i < oscDecoded.typeTags.length; i++) {
+    const tag = oscDecoded.typeTags[i];
+    const val = oscDecoded.args[i];
+    if (tag === "b" && val && typeof val === "object" && "_b64" in (val as object)) {
+      blobArg = val as { _b64?: string; _len?: number };
+    } else if (tag === "i" && typeof val === "number" && blobArg !== null) {
+      count = val; // first int after blob = count
+    }
+  }
+  // Fallback: if no blob found, last int arg is count
+  if (!blobArg) {
+    for (let i = oscDecoded.typeTags.length - 1; i >= 0; i--) {
+      if (oscDecoded.typeTags[i] === "i" && typeof oscDecoded.args[i] === "number") {
+        count = oscDecoded.args[i] as number;
+        break;
+      }
+    }
+  }
+
+  const blobB64 = blobArg?._b64;
+  const blobLen = blobArg?._len ?? 0;
 
   if (!blobB64 || blobLen === 0) {
-    return Response.json({ ok: true, presets: [], count, raw: null });
+    return Response.json({ ok: true, presets: [], count, raw: null, diag });
   }
 
   try {
@@ -191,8 +220,8 @@ export async function GET(req: NextRequest) {
     const mpRaw      = decode(blobBytes);
     const normalized = normalizeMsgpack(mpRaw);
     const presets    = extractPresets(normalized);
-    return Response.json({ ok: true, presets, count, raw: normalized });
+    return Response.json({ ok: true, presets, count, raw: normalized, diag });
   } catch (err) {
-    return Response.json({ ok: true, presets: [], count, error: String(err), raw: null });
+    return Response.json({ ok: true, presets: [], count, error: String(err), raw: null, diag });
   }
 }
