@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import modelDefsRaw from "@/lib/helix-model-defs.json";
 import allModelsRaw from "@/lib/helix-all-models.json";
+import { SignalChainEditor, type EditableBlock, type EditMap } from "./SignalChainEditor";
+import { BlockPickerModal } from "./BlockPickerModal";
 
 // ── Helix color palette (matches companion app colour names) ─────────────────
 const HELIX_COLORS: Array<{ id: number; name: string; hex: string }> = [
@@ -957,6 +959,12 @@ export default function StadiumPage() {
   const [hspDsp2, setHspDsp2] = useState<Array<{slot: number; model: string; name: string; type: string; path: number}> | null>(null);
   // Stomp→block mapping derived from HSP auto-assignment
   const [stompMap, setStompMap] = useState<{ bankA: Array<{slot:number;model:string;name:string;type:string}>; bankB: Array<{slot:number;model:string;name:string;type:string}> } | null>(null);
+  // ── Editable signal chain ─────────────────────────────────────────────────
+  const [dsp1EditMap,  setDsp1EditMap]  = useState<EditMap | null>(null);
+  const [dsp2EditMap,  setDsp2EditMap]  = useState<EditMap | null>(null);
+  const [origDsp1Map,  setOrigDsp1Map]  = useState<EditMap>(new Map());
+  const [origDsp2Map,  setOrigDsp2Map]  = useState<EditMap>(new Map());
+  const [chainPickerInfo, setChainPickerInfo] = useState<{ slotId: string; block: EditableBlock } | null>(null);
   const [editBlobB64, setEditBlobB64] = useState<string>("");
   const [pushStatus, setPushStatus] = useState("");
   // command center
@@ -1124,6 +1132,117 @@ export default function StadiumPage() {
     setTimeout(() => setLoadStatus(""), 5000);
   }, [ip]);
 
+  // ── Build editable maps whenever signal chain + model IDs are resolved ───────
+
+  useEffect(() => {
+    const hasChain = presetSignalChain.length > 0 || presetSignalChainB.length > 0;
+    const hasIds   = Object.keys(modelCatalogIds).length > 0;
+    if (!hasChain && !hspDsp2) { setDsp1EditMap(null); setDsp2EditMap(null); return; }
+
+    const d1 = new Map<number, EditableBlock>();
+    const allDsp1 = [...presetSignalChain, ...presetSignalChainB];
+
+    for (const { slotIdx, block } of allDsp1) {
+      const b = block as Record<string, unknown>;
+      const mdls  = b["mdls"] as Array<Record<string, unknown>> | undefined;
+      const modelId = Array.isArray(mdls) && mdls.length > 0 ? (mdls[0]["id__"] as number) : null;
+      const catalogId = (modelId != null && hasIds) ? modelCatalogIds[modelId] : undefined;
+      const typeNum   = b["type"] as number | undefined;
+      const typeStr   = catalogId
+        ? catalogId.toLowerCase().includes("split") ? "split"
+        : catalogId.toLowerCase().includes("join")  ? "join"
+        : "" // resolved from name below
+        : typeNum === 8 ? "input" : typeNum === 4 ? "output" : "";
+      const name = (modelId != null ? modelNames[modelId] : undefined)
+        ?? (typeNum === 8 ? "Input" : typeNum === 4 ? "Output" : `Block ${slotIdx}`);
+      const fixed = !catalogId || typeStr === "input" || typeStr === "output";
+      d1.set(slotIdx, {
+        slot: slotIdx, dsp: 1, path: slotIdx < 14 ? 0 : 1,
+        model: catalogId ?? "", name, type: typeStr,
+        bypassed: b["enbl"] === 0 || b["enbl"] === false, fixed,
+      });
+    }
+
+    const d2 = new Map<number, EditableBlock>();
+    if (hspDsp2) {
+      for (const hb of hspDsp2) {
+        const fixed = hb.type === "input" || hb.type === "output";
+        d2.set(hb.slot, {
+          slot: hb.slot, dsp: 2, path: hb.path as 0 | 1,
+          model: hb.model, name: hb.name, type: hb.type,
+          bypassed: false, fixed,
+        });
+      }
+    }
+
+    setDsp1EditMap(d1);
+    setDsp2EditMap(d2);
+    setOrigDsp1Map(new Map(d1));
+    setOrigDsp2Map(new Map(d2));
+  }, [presetSignalChain, presetSignalChainB, modelCatalogIds, modelNames, hspDsp2]);
+
+  // ── Edit map handlers ────────────────────────────────────────────────────────
+
+  const handleChainSwap = useCallback((slotIdA: string, slotIdB: string) => {
+    const parse = (id: string) => { const [p, s] = id.split(":"); return { pfx: p as "d1"|"d2", slot: Number(s) }; };
+    const a = parse(slotIdA), b = parse(slotIdB);
+    setDsp1EditMap(prev => {
+      const next = new Map(prev ?? new Map<number,EditableBlock>());
+      const setMap = (pfx: "d1"|"d2") => pfx === "d1" ? next : new Map(dsp2EditMap ?? new Map<number,EditableBlock>());
+      const mA = a.pfx === "d1" ? next : new Map(dsp2EditMap ?? new Map<number,EditableBlock>());
+      const mB = b.pfx === "d1" ? next : new Map(dsp2EditMap ?? new Map<number,EditableBlock>());
+      const blkA = mA.get(a.slot), blkB = mB.get(b.slot);
+      if (a.pfx === b.pfx) {
+        const m = a.pfx === "d1" ? next : mA;
+        if (blkA) m.set(b.slot, { ...blkA, slot: b.slot, path: b.slot < 14 ? 0 : 1 }); else m.delete(b.slot);
+        if (blkB) m.set(a.slot, { ...blkB, slot: a.slot, path: a.slot < 14 ? 0 : 1 }); else m.delete(a.slot);
+        if (a.pfx === "d2") setDsp2EditMap(new Map(m)); return next;
+      }
+      // cross-DSP swap
+      const nd2 = new Map(dsp2EditMap ?? new Map<number,EditableBlock>());
+      const d1 = a.pfx === "d1" ? next : nd2;
+      const d2 = a.pfx === "d1" ? nd2  : next;
+      if (blkA) d2.set(b.slot, { ...blkA, slot: b.slot, dsp: 2, path: b.slot < 14 ? 0 : 1 }); else d2.delete(b.slot);
+      if (blkB) d1.set(a.slot, { ...blkB, slot: a.slot, dsp: 1, path: a.slot < 14 ? 0 : 1 }); else d1.delete(a.slot);
+      setDsp2EditMap(nd2); return next;
+    });
+  }, [dsp2EditMap]);
+
+  const handleChainDelete = useCallback((slotId: string) => {
+    const [pfx, s] = slotId.split(":");
+    const slot = Number(s);
+    if (pfx === "d1") setDsp1EditMap(p => { const m = new Map(p ?? new Map<number,EditableBlock>()); m.delete(slot); return m; });
+    else              setDsp2EditMap(p => { const m = new Map(p ?? new Map<number,EditableBlock>()); m.delete(slot); return m; });
+  }, []);
+
+  const handleChainEditBlock = useCallback((slotId: string, block: EditableBlock) => {
+    setChainPickerInfo({ slotId, block });
+  }, []);
+
+  const handleChainModelSelect = useCallback((model: string, name: string, type: string) => {
+    if (!chainPickerInfo) return;
+    const [pfx, s] = chainPickerInfo.slotId.split(":");
+    const slot = Number(s);
+    const updated: EditableBlock = { ...chainPickerInfo.block, model, name, type, fixed: false };
+    if (pfx === "d1") setDsp1EditMap(p => { const m = new Map(p ?? new Map<number,EditableBlock>()); m.set(slot, updated); return m; });
+    else              setDsp2EditMap(p => { const m = new Map(p ?? new Map<number,EditableBlock>()); m.set(slot, updated); return m; });
+    setChainPickerInfo(null);
+  }, [chainPickerInfo]);
+
+  const isDirty = useCallback((): boolean => {
+    if (!dsp1EditMap || !dsp2EditMap) return false;
+    for (const [slot, b] of dsp1EditMap) {
+      const o = origDsp1Map.get(slot);
+      if (!o || o.model !== b.model) return true;
+    }
+    if (origDsp1Map.size !== dsp1EditMap.size) return true;
+    for (const [slot, b] of dsp2EditMap) {
+      const o = origDsp2Map.get(slot);
+      if (!o || o.model !== b.model) return true;
+    }
+    return false;
+  }, [dsp1EditMap, dsp2EditMap, origDsp1Map, origDsp2Map]);
+
   // ── device status ───────────────────────────────────────────────────────────
 
   const fetchDeviceStatus = useCallback(async () => {
@@ -1274,6 +1393,8 @@ export default function StadiumPage() {
     setPresetSignalChainB([]);
     setHspDsp2(null);
     setStompMap(null);
+    setDsp1EditMap(null);
+    setDsp2EditMap(null);
     setPresetStomps([]);
     setStompDebug(null);
     setModelNames({});
@@ -1968,6 +2089,18 @@ export default function StadiumPage() {
                 >
                   {readingBuffer ? "READING…" : "⟳ READ DEVICE"}
                 </button>
+                {isDirty() && (
+                  <span className="text-xs font-mono px-2 py-0.5 rounded" style={{ background: "rgba(255,215,0,0.12)", border: "1px solid rgba(255,215,0,0.35)", color: "#ffd700" }}>
+                    ● UNSAVED CHANGES
+                  </span>
+                )}
+                {isDirty() && (
+                  <button
+                    onClick={() => { setDsp1EditMap(new Map(origDsp1Map)); setDsp2EditMap(new Map(origDsp2Map)); }}
+                    className="text-xs font-mono"
+                    style={{ color: "rgba(255,215,0,0.5)", cursor: "pointer" }}
+                  >RESET</button>
+                )}
                 {presetSignalChain.length > 0 && (
                   <button
                     onClick={() => { setPresetSignalChain([]); setPresetSignalChainB([]); setHspDsp2(null); setModelNames({}); setModelCatalogIds({}); }}
@@ -1981,29 +2114,36 @@ export default function StadiumPage() {
               <div className="overflow-x-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#1e1e30 transparent" }}>
                 <div style={{ position: "relative", display: "inline-flex", flexDirection: "column", gap: 0, padding: "20px 24px", minWidth: "max-content" }}>
 
-                  {/* ── DSP 1 Row 1: flow[0] slots 0-13 (fixed 14-slot grid) ── */}
-                  {pathAReal.length > 0 && renderPathRow(pathAReal)}
-
-                  {/* ── DSP 1 Row 2: parallel bottom arm slots 14-27 ──────── */}
-                  {hasDSP1Split && dsp1SplitSlot >= 0 && renderBridge(dsp1SplitSlot, dsp1JoinSlot)}
-                  {hasDSP1Split && renderPathRow(path1BFiltered, 14)}
-
-                  {/* ── Separator between DSP 1 and DSP 2 ─────────────────── */}
-                  {pathAReal.length > 0 && hasDSP2 && (
-                    <div style={{ height: 1, background: "#1a1a28", margin: "16px 0", flexShrink: 0 }} />
-                  )}
-
-                  {/* ── DSP 2 Row 3: HSP topology (preferred) or sfg_ fallback ── */}
-                  {hasDSP2 && (hspTop && hspTop.length > 0
-                    ? renderHspRow(hspTop)
-                    : path2AFiltered.length > 0 && renderPathRow(path2AFiltered)
-                  )}
-
-                  {/* ── DSP 2 Row 4: parallel bottom arm slots 14-27 ──────── */}
-                  {hasDSP2Split && dsp2SplitSlot >= 0 && renderBridge(dsp2SplitSlot, dsp2JoinSlot)}
-                  {hasDSP2Split && (hspBot && hspBot.length > 0
-                    ? renderHspRow(hspBot, 14)
-                    : renderPathRow(path2BFiltered, 14)
+                  {dsp1EditMap ? (
+                    <SignalChainEditor
+                      dsp1Map={dsp1EditMap}
+                      dsp2Map={dsp2EditMap ?? new Map()}
+                      origDsp1Map={origDsp1Map}
+                      origDsp2Map={origDsp2Map}
+                      modelDefs={MODEL_DEFS}
+                      onSwap={handleChainSwap}
+                      onDelete={handleChainDelete}
+                      onEditBlock={handleChainEditBlock}
+                    />
+                  ) : (
+                    <>
+                      {/* ── DSP 1 Row 1 ── */}
+                      {pathAReal.length > 0 && renderPathRow(pathAReal)}
+                      {hasDSP1Split && dsp1SplitSlot >= 0 && renderBridge(dsp1SplitSlot, dsp1JoinSlot)}
+                      {hasDSP1Split && renderPathRow(path1BFiltered, 14)}
+                      {pathAReal.length > 0 && hasDSP2 && (
+                        <div style={{ height: 1, background: "#1a1a28", margin: "16px 0", flexShrink: 0 }} />
+                      )}
+                      {hasDSP2 && (hspTop && hspTop.length > 0
+                        ? renderHspRow(hspTop)
+                        : path2AFiltered.length > 0 && renderPathRow(path2AFiltered)
+                      )}
+                      {hasDSP2Split && dsp2SplitSlot >= 0 && renderBridge(dsp2SplitSlot, dsp2JoinSlot)}
+                      {hasDSP2Split && (hspBot && hspBot.length > 0
+                        ? renderHspRow(hspBot, 14)
+                        : renderPathRow(path2BFiltered, 14)
+                      )}
+                    </>
                   )}
 
                 </div>
@@ -2666,6 +2806,16 @@ export default function StadiumPage() {
           </div>
         </div>
       </main>
+
+      {/* ── Block picker modal for signal chain editing ── */}
+      {chainPickerInfo && (
+        <BlockPickerModal
+          currentBlock={chainPickerInfo.block}
+          allModels={ALL_MODELS}
+          onSelect={handleChainModelSelect}
+          onClose={() => setChainPickerInfo(null)}
+        />
+      )}
     </div>
   );
 }
